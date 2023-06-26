@@ -1,0 +1,509 @@
+name: VyOS v1.3 LTS Release
+
+on:
+  workflow_dispatch:
+      
+  schedule:
+    - cron: 0 0 * * 5
+
+env:
+  GIT_CLONE_URL: https://github.com/vyos/vyos-build
+  DEBIAN_MIRROR: http://ftp.us.debian.org/debian/
+  BRANCH: equuleus
+  BUILD_ARCH: amd64
+  BUILD_BY: ${{ secrets.EMAIL }}
+  BUILD_TYPE: release
+  BUILD_COMMENT: "Built By W4XZR."
+  ARTIFACTS_DIR: artifacts
+  WORKING_DIR: vyos-build
+
+jobs:
+  createid:
+    runs-on: ubuntu-latest
+    
+    outputs:
+      BUILD: ${{ steps.step1.outputs.ver }}
+      BUILDX: ${{ steps.step2.outputs.ver }}
+      
+    steps:  
+      - name: Set env
+        run: echo "TIMESTAMP=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV 
+          
+      - name: Set env2
+        run: echo "BUILD_VERSION=equuleus-$TIMESTAMP" >> $GITHUB_ENV 
+          
+      - name: Set env3
+        run: echo "BUILD_VERSION2=1.3-$TIMESTAMP" >> $GITHUB_ENV 
+        
+      - id: step1
+        run: echo "ver=$BUILD_VERSION" >> "$GITHUB_OUTPUT"
+          
+      - id: step2
+        run: echo "ver=$BUILD_VERSION2" >> "$GITHUB_OUTPUT"
+        
+      - name: scp
+        run: |
+          sudo apt install sshpass
+          echo "$BUILD_VERSION" > red
+          
+          sshpass -p "${{ secrets.Pass }}" scp -pCv -o StrictHostKeyChecking=no red thomas@23.134.89.111:~/vy/
+         
+        
+  build:
+    needs: createid
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build_type: ['iso', 'xcp-ng-iso', 'AWS', 'GCE', 'oracle']
+        inc_nat64: ['', '--custom-package tayga']
+    
+    outputs:
+      BUILD: ${{ steps.step1.outputs.ver }}
+
+    container:
+      image: vyos/vyos-build:equuleus
+      options: --workdir /vyos --privileged
+      
+    env:
+      BUILD_VERSION: ${{ needs.createid.outputs.BUILD }}
+      BUILD_VERSION2: ${{ needs.createid.outputs.BUILDX }}
+
+    steps:
+          
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Clone Source Code
+        run: |
+          git clone -b $BRANCH --single-branch $GIT_CLONE_URL $WORKING_DIR
+          cd $WORKING_DIR
+          mkdir -p ./$ARTIFACTS_DIR
+         
+      - name: Build ISO Image
+        id: iso
+        working-directory: ./${{ env.WORKING_DIR }}
+        shell: bash
+        run: |
+         sudo apt-key del FD380FBB
+         wget -O- https://repo.powerdns.com/FD380FBB-pub.asc | sudo apt-key add - 
+         wget https://repo.powerdns.com/FD380FBB-pub.asc
+         sudo apt-get update
+         ./configure --architecture $BUILD_ARCH --custom-apt-key FD380FBB-pub.asc --build-by $BUILD_BY --build-type $BUILD_TYPE --version $BUILD_VERSION2 --build-comment "$BUILD_COMMENT" --custom-package mc --custom-package nano --custom-package git --custom-package iptraf-ng ${{ matrix.inc_nat64 }}
+         
+          mkdir -p ./$ARTIFACTS_DIR
+         
+         if [ '${{ matrix.build_type }}' == 'iso' ]; then
+           sudo make ${{ matrix.build_type }} 
+          
+           ls ./build/
+          
+           if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
+             cp -f ./build/vyos-$BUILD_VERSION2-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso
+           else
+             cp -f ./build/vyos-$BUILD_VERSION2-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.iso
+             fi
+         fi         
+         
+         if [ '${{ matrix.build_type }}' == 'vagrant-libvirt' ]; then
+           sudo make ${{ matrix.build_type }} 
+          
+           ls ./build/
+          
+           if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
+             cp -f ./build/vyos-$BUILD_VERSION2-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso
+           else
+             cp -f ./build/vyos-$BUILD_VERSION2-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.iso
+             fi
+         fi         
+         
+         if [ '${{ matrix.build_type }}' == 'AWS' ]; then
+           sudo make ${{ matrix.build_type }} 
+          
+           ls ./build/
+           
+           if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
+             cp -f ./build/vyos-$BUILD_VERSION2-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.aws.iso
+           else
+             cp -f ./build/vyos-$BUILD_VERSION2-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.aws.iso
+             fi
+         fi
+         
+         if [ '${{ matrix.build_type }}' == 'GCE' ]; then
+           sudo make ${{ matrix.build_type }} 
+          
+           ls ./build/
+           
+           if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
+             cp -f ./build/VyOS-$(date +%Y%m%d).tar.gz ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.gce.tar.gz
+           else
+             cp -f ./build/VyOS-$(date +%Y%m%d).tar.gz ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.gce.tar.gz
+             fi
+         fi
+         
+          if [ '${{ matrix.build_type }}' == 'xcp-ng-iso' ]; then
+           sudo make ${{ matrix.build_type }} 
+          
+           ls ./build/
+           
+           if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
+             cp -f ./build/vyos-$BUILD_VERSION2-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.xcpng.iso
+           else
+             cp -f ./build/vyos-$BUILD_VERSION2-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.xcpng.iso
+             fi
+         fi
+         
+         if [ '${{ matrix.build_type }}' == 'azure' ]; then
+           sudo make ${{ matrix.build_type }} 
+          
+           ls ./build/
+           
+           if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
+             cp -f ./build/vyos-$BUILD_VERSION2-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.azure.iso
+           else
+             cp -f ./build/vyos-$BUILD_VERSION2-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.azure.iso
+             fi
+         fi
+         
+          if [ '${{ matrix.build_type }}' == 'oracle' ]; then
+           sudo make ${{ matrix.build_type }} 
+          
+           ls ./build/
+           
+           if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
+             cp -f ./build/VyOS-$(date +%Y%m%d).qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.oracle.qcow2
+           else
+             cp -f ./build/VyOS-$(date +%Y%m%d).qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.oracle.qcow2
+             fi
+         fi
+         
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}-images
+          path: ${{ env.WORKING_DIR }}/${{ env.ARTIFACTS_DIR }}
+        
+  images:
+    needs: [build, createid]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build_type: ['qemu', 'hyperv', 'vmware', 'pmx']
+        cloudinit: ['cloudinit', 'no-cloudinit', 'vultr']
+        nat64: ['yes', 'no']
+        exclude:
+         - build_type: hyperv
+           cloudinit: vultr
+         - build_type: vmware
+           cloudinit: vultr
+         - build_type: pmx
+           cloudinit: vultr
+#         - build_type: vagrant-libvirt
+#           cloudinit: cloudinit
+#         - build_type: vagrant-libvirt
+#           cloudinit: no-cloudinit
+        
+    
+    outputs:
+      BUILD: ${{ steps.step1.outputs.ver }}
+
+    container:
+      image: vyos/vyos-build:equuleus
+      options: --workdir /vyos --privileged
+      
+    env:
+      BUILD_VERSION: ${{ needs.createid.outputs.BUILD }}
+      BUILD_VERSION2: ${{ needs.createid.outputs.BUILDX }}
+
+    steps:
+              
+      - name: Setup
+        id: setup
+        shell: bash
+        run: |
+         sudo apt update
+         sudo apt install -y ansible python
+         
+      - name: Clone Source Code
+        run: |
+          git clone -b current --single-branch "https://github.com/vyos/vyos-vm-images" $WORKING_DIR
+          cd $WORKING_DIR
+          mkdir -p ./$ARTIFACTS_DIR
+         
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        with:
+          name: vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}-images
+          path: ./${{ env.WORKING_DIR }}
+                  
+      - name: Build Image
+        id: image
+        working-directory: ./${{ env.WORKING_DIR }}
+        shell: bash
+        run: |
+         if [ '${{ matrix.build_type }}' == 'qemu' ]; then
+          if [ '${{ matrix.nat64 }}' == 'yes' ]; then
+           if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
+             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e guest_agent=qemu -e cloud_init=false
+             ls /tmp/
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.qemu.no_cloudinit.qcow2
+           elif [ '${{ matrix.cloudinit }}' == 'vultr' ]; then
+             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr
+             ls /tmp/
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.qemu.vultr.qcow2
+           else
+             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e guest_agent=qemu -e cloud_init=true
+             ls /tmp/
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.qemu.cloudinit.qcow2
+           fi
+          else
+           if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
+             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e guest_agent=qemu -e cloud_init=false
+             ls /tmp/
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.qemu.no_cloudinit.qcow2
+           elif [ '${{ matrix.cloudinit }}' == 'vultr' ]; then
+             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr
+             ls /tmp/
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.qemu.vultr.qcow2
+          else
+             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e guest_agent=qemu -e cloud_init=true
+             ls /tmp/
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.qemu.cloudinit.qcow2
+           fi
+          fi
+         fi
+         
+         if [ '${{ matrix.build_type }}' == 'pmx' ]; then
+          if [ '${{ matrix.nat64 }}' == 'yes' ]; then
+           if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
+             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e guest_agent=qemu -e cloud_init=false -e grub_console=serial
+             ls /tmp/
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.pmx.no_cloudinit.qcow2
+           elif [ '${{ matrix.cloudinit }}' == 'vultr' ]; then
+             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr
+             ls /tmp/
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.pmx.vultr.qcow2
+           else
+             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e guest_agent=qemu -e cloud_init=true -e grub_console=serial -e cloud_init_ds=NoCloud
+             ls /tmp/
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.pmx.cloudinit.qcow2
+           fi
+          else
+           if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
+             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e guest_agent=qemu -e cloud_init=false -e grub_console=serial
+             ls /tmp/
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.pmx.no_cloudinit.qcow2
+           elif [ '${{ matrix.cloudinit }}' == 'vultr' ]; then
+             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr
+             ls /tmp/
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.pmx.vultr.qcow2
+          else
+             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e guest_agent=qemu -e cloud_init=true -e grub_console=serial -e cloud_init_ds=NoCloud
+             ls /tmp/
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.pmx.cloudinit.qcow2
+           fi
+          fi
+         fi
+         
+         if [ '${{ matrix.build_type }}' == 'hyperv' ]; then
+          if [ '${{ matrix.nat64 }}' == 'yes' ]; then
+           if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
+             ansible-playbook hyperv.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e cloud_init=false
+             ls /tmp/
+             cp /tmp/vyos_hyperv_image.vhdx ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.hyperv.no_cloudinit.vhdx
+           elif [ '${{ matrix.cloudinit }}' == 'vultr' ]; then
+             ansible-playbook hyperv.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e cloud_init=true -e cloud_init_ds=Vultr
+             ls /tmp/
+             cp /tmp/vyos_hyperv_image.vhdx ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.hyperv.vultr.vhdx
+           else
+             ansible-playbook hyperv.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e cloud_init=true
+             ls /tmp/
+             cp /tmp/vyos_hyperv_image.vhdx ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.hyperv.cloudinit.vhdx
+           fi
+          else
+           if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
+             ansible-playbook hyperv.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e cloud_init=false
+             ls /tmp/
+             cp /tmp/vyos_hyperv_image.vhdx ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.hyperv.no_cloudinit.vhdx
+           elif [ '${{ matrix.cloudinit }}' == 'vultr' ]; then
+             ansible-playbook hyperv.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e cloud_init=true -e cloud_init_ds=Vultr
+             ls /tmp/
+             cp /tmp/vyos_hyperv_image.vhdx ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.hyperv.vultr.vhdx
+          else
+             ansible-playbook hyperv.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e cloud_init=true
+             ls /tmp/
+             cp /tmp/vyos_hyperv_image.vhdx ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.hyperv.cloudinit.vhdx
+           fi
+          fi
+         fi
+         
+         if [ '${{ matrix.build_type }}' == 'vmware' ]; then
+         wget https://github.com/w4xzr/vyos-build-action/raw/master/tools/VMware-ovftool-4.4.1-16812187-lin.x86_64.bundle
+         chmod +x VMware-ovftool-4.4.1-16812187-lin.x86_64.bundle
+          ./VMware-ovftool-4.4.1-16812187-lin.x86_64.bundle --eulas-agreed
+          echo "${{ secrets.PKEY }}" >> myself.pem
+          if [ '${{ matrix.nat64 }}' == 'yes' ]; then
+           if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
+             ansible-playbook vmware.yml -e vyos_vmware_private_key_path=myself.pem -e guest_agent=vmware -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e cloud_init=false -e ovf_template=simple
+             ls /tmp/
+             cp /tmp/*.ova ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.vmware.no_cloudinit.ova
+           elif [ '${{ matrix.cloudinit }}' == 'vultr' ]; then
+             ansible-playbook vmware.yml -e vyos_vmware_private_key_path=myself.pem -e guest_agent=vmware -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e cloud_init=true -e cloud_init_ds=Vultr
+             ls /tmp/
+             cp /tmp/*.ova ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.vmware.vultr.ova
+           else
+             ansible-playbook vmware.yml -e vyos_vmware_private_key_path=myself.pem -e guest_agent=vmware -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e cloud_init=true
+             ls /tmp/
+             cp /tmp/*.ova ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.vmware.cloudinit.ova
+           fi
+          else
+           if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
+             ansible-playbook vmware.yml -e vyos_vmware_private_key_path=myself.pem -e guest_agent=vmware -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e cloud_init=false -e ovf_template=simple
+             ls /tmp/
+             cp /tmp/*.ova ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.vmware.no_cloudinit.ova
+           elif [ '${{ matrix.cloudinit }}' == 'vultr' ]; then
+             ansible-playbook vmware.yml -e vyos_vmware_private_key_path=myself.pem -e guest_agent=vmware -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e cloud_init=true -e cloud_init_ds=Vultr
+             ls /tmp/
+             cp /tmp/*.ova ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.vmware.vultr.ova
+          else
+             ansible-playbook vmware.yml -e vyos_vmware_private_key_path=myself.pem -e guest_agent=vmware -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e cloud_init=true
+             ls /tmp/
+             cp /tmp/*.ova ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.vmware.cloudinit.ova
+           fi
+          fi
+         fi
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}-images
+          path: ${{ env.WORKING_DIR }}/${{ env.ARTIFACTS_DIR }}
+        
+  release1:
+     needs: [build, createid, images]
+     runs-on: ubuntu-latest
+
+     steps:
+          
+      - name: Set env
+        run: echo "BUILD_VERSION=${{needs.createid.outputs.BUILD}}" >> $GITHUB_ENV 
+        
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        with:
+          name: vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}-images
+          
+      - name: SHA256sum
+        run: |
+         ls
+         sha256sum vyos-* >> vyos-$BUILD_VERSION-$BUILD_ARCH.sha256
+         
+         wget https://github.com/w4xzr/signer/releases/download/v1/signer
+         
+         chmod +x signer
+         
+         echo "${{ secrets.PKEY }}" >> W4XZR.pem
+         openssl ec -in W4XZR.pem -out W4XZR.der -outform der
+         openssl x509 -pubkey -noout -in W4XZR.pem  > pubkey.pem
+         ./signer vyos-$BUILD_VERSION-$BUILD_ARCH.sha256
+         
+         mkdir sigs
+         
+         cp box* sigs/
+         cp vyos-$BUILD_VERSION-$BUILD_ARCH.sha* sigs/
+         
+         zip -r vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.verify.zip box* *.sha*
+         
+         sudo apt install sshpass
+         
+         sshpass -p "${{ secrets.Pass }}" scp -pCv -o StrictHostKeyChecking=no vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.verify.zip thomas@23.134.89.111:~/vy/
+         
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: equuleus
+          name: VyOS 1.3 LTS Release
+          body: VyOS equuleus Branch
+          draft: false
+          prerelease: false
+          files: |
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.iso
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.xcpng.iso
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.aws.iso
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.gce.tar.gz
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.oracle.qcow2
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.verify.zip
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.iso
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.xcpng.iso
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.aws.iso
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.gce.tar.gz
+      - name: Release1
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: equuleus
+          name: VyOS 1.3 LTS Release
+          body: VyOS equuleus Branch
+          draft: false
+          prerelease: false
+          files: |
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.qemu.no_cloudinit.qcow2
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.qemu.vultr.qcow2
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.qemu.cloudinit.qcow2
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.qemu.no_cloudinit.qcow2
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.qemu.vultr.qcow2
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.qemu.cloudinit.qcow2
+        
+      - name: Release2
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: equuleus
+          name: VyOS 1.3 LTS Release
+          body: VyOS equuleus Branch
+          draft: false
+          prerelease: false
+          files: |
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.hyperv.no_cloudinit.vhdx
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.hyperv.cloudinit.vhdx
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.hyperv.no_cloudinit.vhdx
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.hyperv.cloudinit.vhdx
+        
+      - name: Release3
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: equuleus
+          name: VyOS 1.3 LTS Release
+          body: VyOS equuleus Branch
+          draft: false
+          prerelease: false
+          files: |
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.vmware.no_cloudinit.ova
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.vmware.cloudinit.ova
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.vmware.no_cloudinit.ova
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.vmware.cloudinit.ova
+      - name: Release4
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: equuleus
+          name: VyOS 1.3 LTS Release
+          body: VyOS equuleus Branch
+          draft: false
+          prerelease: false
+          files: |
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.pmx.no_cloudinit.qcow2
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.pmx.cloudinit.qcow2
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.pmx.no_cloudinit.qcow2
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.pmx.cloudinit.qcow2
