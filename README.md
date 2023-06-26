@@ -1,7 +1,7 @@
 # VyOS ISO Automation Build
 [![VyOS v1.4 Rolling Release](https://github.com/w4xzr/vyosbot/actions/workflows/vyos-v1.4-rolling-release.yml/badge.svg)](https://github.com/w4xzr/vyosbot/actions/workflows/vyos-v1.4-rolling-release.yml) [![VyOS v1.3 LTS Release](https://github.com/w4xzr/vyosbot/actions/workflows/vyos-v1.3-equuleus.yml/badge.svg)](https://github.com/w4xzr/vyosbot/actions/workflows/vyos-v1.3-equuleus.yml)
 
-Automate build VyOS v1.2 LTS, v1.3 LTS Release and v1.4 Rolling Release ISO files.
+Automate build VyOS v1.3 LTS Release and v1.4 Rolling Release files.
 
 ## About this repository
 
