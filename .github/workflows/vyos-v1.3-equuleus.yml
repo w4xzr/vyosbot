@@ -39,15 +39,7 @@ jobs:
         run: echo "ver=$BUILD_VERSION" >> "$GITHUB_OUTPUT"
           
       - id: step2
-        run: echo "ver=$BUILD_VERSION2" >> "$GITHUB_OUTPUT"
-        
-      - name: scp
-        run: |
-          sudo apt install sshpass
-          echo "$BUILD_VERSION" > red
-          
-          sshpass -p "${{ secrets.Pass }}" scp -pCv -o StrictHostKeyChecking=no red thomas@23.134.89.111:~/vy/
-         
+        run: echo "ver=$BUILD_VERSION2" >> "$GITHUB_OUTPUT"         
         
   build:
     needs: createid
@@ -420,7 +412,7 @@ jobs:
          
          sudo apt install sshpass
          
-         sshpass -p "${{ secrets.Pass }}" scp -pCv -o StrictHostKeyChecking=no vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.verify.zip thomas@23.134.89.111:~/vy/
+         sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.verify.zip thomas@23.134.89.111:~/vy/
          
       - name: Release
         uses: softprops/action-gh-release@v1
