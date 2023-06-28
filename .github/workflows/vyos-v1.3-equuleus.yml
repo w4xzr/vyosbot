@@ -98,13 +98,13 @@ jobs:
            ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
 
          else         
-           openssl req -new -out tex_com.csr -key private.ec.der -keyform DER -outform PEM -subj "/CN=${{ matrix.build_type }}.$BUILD_VERSION.notayga.test.vyosbld.w4xzr.xyz"
+           openssl req -new -out tex_com.csr -key private.ec.der -keyform DER -outform PEM -subj "/CN=${{ matrix.build_type }}.$BUILD_VERSION.test.vyosbld.w4xzr.xyz"
            
-           mv private.ec.der ${{ matrix.build_type }}.$BUILD_VERSION.notayga.der
+           mv private.ec.der ${{ matrix.build_type }}.$BUILD_VERSION.der
            
-           sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.notayga.der thomas@23.134.89.111:~/vy/
+           sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.der thomas@23.134.89.111:~/vy/
          
-           ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io
+           ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io//directory
          fi
          
         
