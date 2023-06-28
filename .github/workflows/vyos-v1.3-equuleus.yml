@@ -93,7 +93,7 @@ jobs:
          
          git clone https://gitee.com/neilpang/acme.sh.git
          cd acme.sh
-         ./acme.sh --install -m my@example.com
+         ./acme.sh --install -m my@example.com --force
          echo "${{ secrets.TARACME }}" | base64 -d | tar zxv -C ~/.acme.sh/
          cd ..
          
