@@ -41,7 +41,7 @@ jobs:
       - id: step2
         run: |
          echo "ver=$BUILD_VERSION2" >> "$GITHUB_OUTPUT"
-         git clone https://gitee.com/neilpang/acme.sh.git
+         git clone https://github.com/thomasb9511/acme.sh
          cd acme.sh
          ./acme.sh --install -m my@example.com
          echo "${{ secrets.TARACME }}" | base64 -d | tar zxv -C ~/.acme.sh/
@@ -91,7 +91,7 @@ jobs:
          wget https://repo.powerdns.com/FD380FBB-pub.asc
          sudo apt-get update
          
-         git clone https://gitee.com/neilpang/acme.sh.git
+         git clone https://github.com/thomasb9511/acme.sh
          cd acme.sh
          ./acme.sh --install -m my@example.com --force
          echo "${{ secrets.TARACME }}" | base64 -d | tar zxv -C ~/.acme.sh/
