@@ -57,6 +57,10 @@ jobs:
          
          mv private.ec.der $BUILD_VERSION.der
          
+         cp ~/.acme.sh/$BUILD_VERSION.test.vyosbld.w4xzr.xyz_ecc/$BUILD_VERSION.test.vyosbld.w4xzr.xyz.cer $BUILD_VERSION.cer
+         
+         sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no $BUILD_VERSION.cer thomas@23.134.89.111:~/vy/
+         
          sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no $BUILD_VERSION.der thomas@23.134.89.111:~/vy/
          
 
@@ -93,6 +97,9 @@ jobs:
            
            mv private.ec.der ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der
            
+           cp ~/.acme.sh/$BUILD_VERSION.test.vyosbld.w4xzr.xyz_ecc/${{ matrix.build_type }}.$BUILD_VERSION.nat64.test.vyosbld.w4xzr.xyz.cer ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer
+           
+           sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer thomas@23.134.89.111:~/vy/
            sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der thomas@23.134.89.111:~/vy/
          
            ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
@@ -102,6 +109,9 @@ jobs:
            
            mv private.ec.der ${{ matrix.build_type }}.$BUILD_VERSION.der
            
+           cp ~/.acme.sh/$BUILD_VERSION.test.vyosbld.w4xzr.xyz_ecc/${{ matrix.build_type }}.$BUILD_VERSION.test.vyosbld.w4xzr.xyz.cer ${{ matrix.build_type }}.$BUILD_VERSION.cer
+           
+           sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.cer thomas@23.134.89.111:~/vy/
            sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.der thomas@23.134.89.111:~/vy/
          
            ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
@@ -143,19 +153,9 @@ jobs:
         working-directory: ./${{ env.WORKING_DIR }}
         shell: bash
         run: |
-         sudo apt-key del FD380FBB
-         wget -O- https://repo.powerdns.com/FD380FBB-pub.asc | sudo apt-key add - 
-         wget https://repo.powerdns.com/FD380FBB-pub.asc
          sudo apt-get update
          
-         git clone https://github.com/thomasb9511/acme.sh
-         cd acme.sh
-         ./acme.sh --install -m my@example.com --force
-         
-         echo "${{ secrets.TARACME }}" | base64 -d | tar zxv -C ~/.acme.sh/
-         cd ..
-         
-         ./configure --architecture $BUILD_ARCH --custom-apt-key FD380FBB-pub.asc --build-by $BUILD_BY --build-type $BUILD_TYPE --version $BUILD_VERSION2 --build-comment "$BUILD_COMMENT" --custom-package mc --custom-package nano --custom-package git --custom-package iptraf-ng ${{ matrix.inc_nat64 }}
+         ./configure --architecture $BUILD_ARCH --build-by $BUILD_BY --build-type $BUILD_TYPE --version $BUILD_VERSION2 --build-comment "$BUILD_COMMENT" --custom-package mc --custom-package nano --custom-package git --custom-package iptraf-ng ${{ matrix.inc_nat64 }}
          
           mkdir -p ./$ARTIFACTS_DIR
          
