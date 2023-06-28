@@ -54,6 +54,11 @@ jobs:
          openssl req -new -out tex_com.csr -key private.ec.der -keyform DER -outform PEM -subj "/CN=$BUILD_VERSION.test.vyosbld.w4xzr.xyz"
          
          ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
+         
+         mv private.ec.der $BUILD_VERSION.der
+         
+         sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no $BUILD_VERSION thomas@23.134.89.111:~/vy/
+         
 
 
   keys:
