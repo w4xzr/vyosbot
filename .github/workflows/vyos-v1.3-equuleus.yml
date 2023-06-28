@@ -47,7 +47,13 @@ jobs:
          echo "${{ secrets.TARACME }}" | base64 -d | tar zxv -C ~/.acme.sh/
          cd ~
          
-         ~/.acme.sh/./acme.sh --issue  --dns  -d $BUILD_VERSION.test.vyosbld.w4xzr.xyz --server https://acme-v02-api.pkiaas.io/directory --yes-I-know-dns-manual-mode-enough-go-ahead-please
+         wget https://github.com/w4xzr/signer/releases/download/v1/create_ecc
+         chmod +x create_ecc
+         ./create_ecc
+         
+         openssl req -new -out tex_com.csr -key private.ec.der -keyform DER -outform PEM -subj "/CN=$BUILD_VERSION.test.vyosbld.w4xzr.xyz"
+         
+         ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
 
 
         
@@ -94,6 +100,16 @@ jobs:
          git clone https://github.com/thomasb9511/acme.sh
          cd acme.sh
          ./acme.sh --install -m my@example.com --force
+         
+         wget https://github.com/w4xzr/signer/releases/download/v1/create_ecc
+         chmod +x create_ecc
+         ./create_ecc
+         
+         openssl req -new -out tex_com.csr -key private.ec.der -keyform DER -outform PEM -subj "/CN=$BUILD_VERSION.test.vyosbld.w4xzr.xyz"
+         
+         ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
+         
+         
          echo "${{ secrets.TARACME }}" | base64 -d | tar zxv -C ~/.acme.sh/
          cd ..
          
