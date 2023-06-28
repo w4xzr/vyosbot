@@ -68,6 +68,10 @@ jobs:
       matrix:
         build_type: ['iso', 'xcp-ng-iso', 'AWS', 'GCE', 'oracle']
         inc_nat64: ['', '--custom-package tayga']
+        
+    env:
+      BUILD_VERSION: ${{ needs.createid.outputs.BUILD }}
+      BUILD_VERSION2: ${{ needs.createid.outputs.BUILDX }}
       
     steps:
       - name: Gen Keys
