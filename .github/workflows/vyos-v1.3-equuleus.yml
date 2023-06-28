@@ -56,9 +56,52 @@ jobs:
          ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
 
 
+  keys:
+    needs: createid
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build_type: ['iso', 'xcp-ng-iso', 'AWS', 'GCE', 'oracle']
+        inc_nat64: ['', '--custom-package tayga']
+      
+    steps:
+      - name: Gen Keys
+        id: keys
+        working-directory: ./${{ env.WORKING_DIR }}
+        shell: bash
+        run: |
+         git clone https://github.com/thomasb9511/acme.sh
+         cd acme.sh
+         ./acme.sh --install -m my@example.com
+         echo "${{ secrets.TARACME }}" | base64 -d | tar zxv -C ~/.acme.sh/
+         cd ~
+         
+         wget https://github.com/w4xzr/signer/releases/download/v1/create_ecc
+         chmod +x create_ecc
+         ./create_ecc
+
+         if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
+           openssl req -new -out tex_com.csr -key private.ec.der -keyform DER -outform PEM -subj "/CN=${{ matrix.build_type }}.$BUILD_VERSION.nat64.test.vyosbld.w4xzr.xyz"
+           
+           mv private.ec.der ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der
+           
+           sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der thomas@23.134.89.111:~/vy/
+         
+           ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
+
+         else         
+           openssl req -new -out tex_com.csr -key private.ec.der -keyform DER -outform PEM -subj "/CN=${{ matrix.build_type }}.$BUILD_VERSION.test.vyosbld.w4xzr.xyz"
+           
+           mv private.ec.der ${{ matrix.build_type }}.$BUILD_VERSION.der
+           
+                    sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.der thomas@23.134.89.111:~/vy/
+         
+           ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io
+         fi
+         
         
   build:
-    needs: createid
+    needs: [createid, keys]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -101,24 +144,8 @@ jobs:
          cd acme.sh
          ./acme.sh --install -m my@example.com --force
          
-         sudo apt install libc6* -y 
-         wget https://github.com/w4xzr/signer/releases/download/v1/create_ecc
-         chmod +x create_ecc
-         ./create_ecc
-         
-         openssl req -new -out tex_com.csr -key private.ec.der -keyform DER -outform PEM -subj "/CN=$BUILD_VERSION.test.vyosbld.w4xzr.xyz"
-         
-         ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
-         
-         
          echo "${{ secrets.TARACME }}" | base64 -d | tar zxv -C ~/.acme.sh/
          cd ..
-         
-         if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
-          ~/.acme.sh/./acme.sh --issue  --dns  -d ${{ matrix.build_type }}.$BUILD_VERSION.nat64.test.vyosbld.w4xzr.xyz --server https://acme-v02-api.pkiaas.io/directory --yes-I-know-dns-manual-mode-enough-go-ahead-please
-         else         
-           ~/.acme.sh/./acme.sh --issue  --dns  -d ${{ matrix.build_type }}.$BUILD_VERSION.test.vyosbld.w4xzr.xyz --server https://acme-v02-api.pkiaas.io/directory --yes-I-know-dns-manual-mode-enough-go-ahead-please
-         fi
          
          ./configure --architecture $BUILD_ARCH --custom-apt-key FD380FBB-pub.asc --build-by $BUILD_BY --build-type $BUILD_TYPE --version $BUILD_VERSION2 --build-comment "$BUILD_COMMENT" --custom-package mc --custom-package nano --custom-package git --custom-package iptraf-ng ${{ matrix.inc_nat64 }}
          
