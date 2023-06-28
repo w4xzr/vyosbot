@@ -157,6 +157,8 @@ jobs:
         shell: bash
         run: |
          sudo apt-get update
+                  
+         sudo apt-get install sshpass
          
          mkdir ./data/live-build-config/includes.chroot/opt/block
          
