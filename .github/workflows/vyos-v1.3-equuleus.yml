@@ -57,7 +57,7 @@ jobs:
          
          mv private.ec.der $BUILD_VERSION.der
          
-         sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no $BUILD_VERSION thomas@23.134.89.111:~/vy/
+         sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no $BUILD_VERSION.der thomas@23.134.89.111:~/vy/
          
 
 
