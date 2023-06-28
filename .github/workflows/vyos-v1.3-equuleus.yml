@@ -96,10 +96,10 @@ jobs:
            openssl req -new -out tex_com.csr -key private.ec.der -keyform DER -outform PEM -subj "/CN=${{ matrix.build_type }}.$BUILD_VERSION.nat64.test.vyosbld.w4xzr.xyz"
            
            mv private.ec.der ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der
-           
-           cp ~/.acme.sh/${{ matrix.build_type }}.$BUILD_VERSION.nat64.test.vyosbld.w4xzr.xyz_ecc/${{ matrix.build_type }}.$BUILD_VERSION.nat64.test.vyosbld.w4xzr.xyz.cer ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer
 
            ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
+           
+           cp ~/.acme.sh/${{ matrix.build_type }}.$BUILD_VERSION.nat64.test.vyosbld.w4xzr.xyz_ecc/${{ matrix.build_type }}.$BUILD_VERSION.nat64.test.vyosbld.w4xzr.xyz.cer ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer
            
            sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer thomas@23.134.89.111:~/vy/
            sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der thomas@23.134.89.111:~/vy/
@@ -108,10 +108,10 @@ jobs:
            openssl req -new -out tex_com.csr -key private.ec.der -keyform DER -outform PEM -subj "/CN=${{ matrix.build_type }}.$BUILD_VERSION.test.vyosbld.w4xzr.xyz"
            
            mv private.ec.der ${{ matrix.build_type }}.$BUILD_VERSION.der
-           
-           cp ~/.acme.sh/${{ matrix.build_type }}.$BUILD_VERSION.test.vyosbld.w4xzr.xyz_ecc/${{ matrix.build_type }}.$BUILD_VERSION.test.vyosbld.w4xzr.xyz.cer ${{ matrix.build_type }}.$BUILD_VERSION.cer
           
            ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
+           
+           cp ~/.acme.sh/${{ matrix.build_type }}.$BUILD_VERSION.test.vyosbld.w4xzr.xyz_ecc/${{ matrix.build_type }}.$BUILD_VERSION.test.vyosbld.w4xzr.xyz.cer ${{ matrix.build_type }}.$BUILD_VERSION.cer
            
            sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.cer thomas@23.134.89.111:~/vy/
            sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.der thomas@23.134.89.111:~/vy/
