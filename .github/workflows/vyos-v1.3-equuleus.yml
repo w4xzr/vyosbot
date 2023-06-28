@@ -72,7 +72,6 @@ jobs:
     steps:
       - name: Gen Keys
         id: keys
-        working-directory: ./${{ env.WORKING_DIR }}
         shell: bash
         run: |
          git clone https://github.com/thomasb9511/acme.sh
