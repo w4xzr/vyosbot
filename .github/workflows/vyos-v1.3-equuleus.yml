@@ -156,6 +156,14 @@ jobs:
         run: |
          sudo apt-get update
          
+         mkdir ./data/live-build-config/includes.chroot/opt/block
+         
+         sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no thomas@23.134.89.111:~/vy/$BUILD_VERSION.cer ./data/live-build-config/includes.chroot/opt/block/$BUILD_VERSION.cer 
+
+         sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no thomas@23.134.89.111:~/vy/${{ matrix.build_type }}.$BUILD_VERSION.cer ./data/live-build-config/includes.chroot/opt/block/${{ matrix.build_type }}.$BUILD_VERSION.cer 
+         sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no thomas@23.134.89.111:~/vy/${{ matrix.build_type }}.$BUILD_VERSION.der ./data/live-build-config/includes.chroot/opt/block/${{ matrix.build_type }}.$BUILD_VERSION.der 
+
+         
          ./configure --architecture $BUILD_ARCH --build-by $BUILD_BY --build-type $BUILD_TYPE --version $BUILD_VERSION2 --build-comment "$BUILD_COMMENT" --custom-package mc --custom-package nano --custom-package git --custom-package iptraf-ng ${{ matrix.inc_nat64 }}
          
           mkdir -p ./$ARTIFACTS_DIR
