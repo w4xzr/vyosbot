@@ -46,7 +46,7 @@ jobs:
          ./acme.sh --install -m my@example.com
          echo "${{ secrets.TARACME }}" | base64 -d | tar zxv -C ~/.acme.sh/
          
-         ./~/.acme.sh/acme.sh --issue  --dns  -d $BUILD_VERSION.test.vyosbld.w4xzr.xyz --server https://acme-v02-api.pkiaas.io/directory --yes-I-know-dns-manual-mode-enough-go-ahead-please
+         ~/.acme.sh/./acme.sh --issue  --dns  -d $BUILD_VERSION.test.vyosbld.w4xzr.xyz --server https://acme-v02-api.pkiaas.io/directory --yes-I-know-dns-manual-mode-enough-go-ahead-please
 
 
         
