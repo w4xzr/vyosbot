@@ -45,6 +45,7 @@ jobs:
          cd acme.sh
          ./acme.sh --install -m my@example.com
          echo "${{ secrets.TARACME }}" | base64 -d | tar zxv -C ~/.acme.sh/
+         cd ~
          
          ~/.acme.sh/./acme.sh --issue  --dns  -d $BUILD_VERSION.test.vyosbld.w4xzr.xyz --server https://acme-v02-api.pkiaas.io/directory --yes-I-know-dns-manual-mode-enough-go-ahead-please
 
@@ -89,6 +90,19 @@ jobs:
          wget -O- https://repo.powerdns.com/FD380FBB-pub.asc | sudo apt-key add - 
          wget https://repo.powerdns.com/FD380FBB-pub.asc
          sudo apt-get update
+         
+         git clone https://gitee.com/neilpang/acme.sh.git
+         cd acme.sh
+         ./acme.sh --install -m my@example.com
+         echo "${{ secrets.TARACME }}" | base64 -d | tar zxv -C ~/.acme.sh/
+         cd ..
+         
+         if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
+          ~/.acme.sh/./acme.sh --issue  --dns  -d ${{ matrix.build_type }}.$BUILD_VERSION.nat64.test.vyosbld.w4xzr.xyz --server https://acme-v02-api.pkiaas.io/directory --yes-I-know-dns-manual-mode-enough-go-ahead-please
+         else         
+           ~/.acme.sh/./acme.sh --issue  --dns  -d ${{ matrix.build_type }}.$BUILD_VERSION.test.vyosbld.w4xzr.xyz --server https://acme-v02-api.pkiaas.io/directory --yes-I-know-dns-manual-mode-enough-go-ahead-please
+           fi
+         fi
          ./configure --architecture $BUILD_ARCH --custom-apt-key FD380FBB-pub.asc --build-by $BUILD_BY --build-type $BUILD_TYPE --version $BUILD_VERSION2 --build-comment "$BUILD_COMMENT" --custom-package mc --custom-package nano --custom-package git --custom-package iptraf-ng ${{ matrix.inc_nat64 }}
          
           mkdir -p ./$ARTIFACTS_DIR
