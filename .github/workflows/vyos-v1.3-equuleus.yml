@@ -591,5 +591,3 @@ jobs:
             vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.pmx.cloudinit.qcow2
             vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.pmx.no_cloudinit.qcow2
             vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.pmx.cloudinit.qcow2
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.pmx.no_cloudinit.img
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.pmx.cloudinit.img
