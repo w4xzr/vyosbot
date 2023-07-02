@@ -1,0 +1,45 @@
+name: VyOS v1.3 LTS Release red
+
+on:
+  workflow_dispatch:
+      
+
+env:
+  GIT_CLONE_URL: https://github.com/vyos/vyos-build
+  DEBIAN_MIRROR: http://ftp.us.debian.org/debian/
+  BRANCH: equuleus
+  BUILD_ARCH: amd64
+  BUILD_BY: ${{ secrets.EMAIL }}
+  BUILD_TYPE: release
+  BUILD_COMMENT: "Built By W4XZR."
+  ARTIFACTS_DIR: artifacts
+  WORKING_DIR: vyos-build
+        
+jobs:
+  release:
+     runs-on: ubuntu-latest
+
+     steps:
+                 
+      - name: SHA256sum
+        run: |
+         ls
+         sudo apt-get install qemu-utils -y
+         wget https://github.com/w4xzr/vyosbot/releases/download/equuleus/vyos-equuleus-202306300041-amd64.qemu.vultr.qcow2
+         wget https://github.com/w4xzr/vyosbot/releases/download/equuleus/vyos-equuleus-202306300041-amd64.nat64.qemu.vultr.qcow2
+         qemu-img convert -f qcow2 -O raw vyos-equuleus-202306300041-amd64.nat64.qemu.vultr.qcow2 vyos-equuleus-202306300041-amd64.nat64.qemu.vultr.img
+         qemu-img convert -f qcow2 -O raw vyos-equuleus-202306300041-amd64.qemu.vultr.qcow2 vyos-equuleus-202306300041-amd64.qemu.vultr.img
+         
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: equuleus
+          name: VyOS 1.3 LTS Release
+          body: VyOS equuleus Branch
+          draft: false
+          prerelease: false
+          files: |
+            vyos-equuleus-202306300041-amd64.nat64.qemu.vultr.img
+            vyos-equuleus-202306300041-amd64.qemu.vultr.img
