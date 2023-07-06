@@ -334,6 +334,7 @@ jobs:
              ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr
              ls /tmp/
              cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.qemu.vultr.qcow2
+             qemu-img convert -f qcow2 -O raw ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.qemu.vultr.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.qemu.vultr.img
            else
              ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e guest_agent=qemu -e cloud_init=true
              ls /tmp/
@@ -348,6 +349,8 @@ jobs:
              ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr
              ls /tmp/
              cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.qemu.vultr.qcow2
+             qemu-img convert -f qcow2 -O raw ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.qemu.vultr.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.qemu.vultr.img
+
           else
              ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e guest_agent=qemu -e cloud_init=true
              ls /tmp/
