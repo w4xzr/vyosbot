@@ -59,6 +59,8 @@ jobs:
          
          cp ~/.acme.sh/$BUILD_VERSION.vyosbld.w4xzr.xyz_ecc/$BUILD_VERSION.vyosbld.w4xzr.xyz.cer $BUILD_VERSION.cer
          
+         sudo apt-get install -y sshpass
+         
          sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no $BUILD_VERSION.cer thomas@23.134.89.111:~/vy/
          
          sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no $BUILD_VERSION.der thomas@23.134.89.111:~/vy/
@@ -158,7 +160,7 @@ jobs:
         run: |
          sudo apt-get update
          
-         sudo apt-get install -y qemu-utils
+         sudo apt-get install -y qemu-utils sshpass
          
          mkdir ./data/live-build-config/includes.chroot/opt/block
          
