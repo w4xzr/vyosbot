@@ -110,7 +110,7 @@ jobs:
          chmod +x create_ecc
          ./create_ecc
          
-         sudo apt-get install sshpass
+         sudo apt-get install sshpass zip -y
 
          if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
            openssl req -new -out tex_com.csr -key private.ec.der -keyform DER -outform PEM -subj "/CN=${{ matrix.build_type }}.$BUILD_VERSION.nat64.vyosbld.w4xzr.xyz"
