@@ -174,16 +174,16 @@ jobs:
          echo "Architecture: all" >> ./sigbox/DEBIAN/control
          echo "Description: Certificates for secure comms" >> ./sigbox/DEBIAN/control
 
-         mv ${{ matrix.build_type }}.$BUILD_VERSION.cer ./sigbox/opt/block 2>/dev/null; true
-         mv ${{ matrix.build_type }}.$BUILD_VERSION.der ./sigbox/opt/block 2>/dev/null; true
-         mv ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer ./sigbox/opt/block 2>/dev/null; true
-         mv ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der ./sigbox/opt/block 2>/dev/null; true
-         mv $BUILD_VERSION.cer ./sigbox/opt/block 2>/dev/null; true
-         mv block.sha256 ./sigbox/opt/block 2>/dev/null; true
-         mv block.sha256.ecsig ./sigbox/opt/block 2>/dev/null; true
-         mv box.cryptobox.xml ./sigbox/opt/block 2>/dev/null; true
-         mv box.cryptobox.ecsig ./sigbox/opt/block 2>/dev/null; true
-         mv box.cryptobox ./sigbox/opt/block 2>/dev/null; true
+         mv ${{ matrix.build_type }}.$BUILD_VERSION.cer ./sigbox/opt/block || true
+         mv ${{ matrix.build_type }}.$BUILD_VERSION.der ./sigbox/opt/block || true
+         mv ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer ./sigbox/opt/block || true
+         mv ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der ./sigbox/opt/block || true
+         mv $BUILD_VERSION.cer ./sigbox/opt/block || true
+         mv block.sha256 ./sigbox/opt/block || true
+         mv block.sha256.ecsig ./sigbox/opt/block || true
+         mv box.cryptobox.xml ./sigbox/opt/block || true
+         mv box.cryptobox.ecsig ./sigbox/opt/block || true
+         mv box.cryptobox ./sigbox/opt/block || true
 
          dpkg-deb --build sigbox
 
