@@ -99,8 +99,7 @@ jobs:
       - name: Cert Gen
         id: cert
         shell: bash
-        run: |
-                 
+        run: |        
          git clone https://github.com/thomasb9511/acme.sh
          cd acme.sh
          ./acme.sh --install -m my@example.com --force
