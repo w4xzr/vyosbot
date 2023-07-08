@@ -102,7 +102,7 @@ jobs:
         run: |
          git clone https://github.com/thomasb9511/acme.sh
          cd acme.sh
-         ./acme.sh --install -m my@example.com
+         ./acme.sh --install -m my@example.com --force
          echo "${{ secrets.TARACME }}" | base64 -d | tar zxv -C ~/.acme.sh/
          cd ~
          
