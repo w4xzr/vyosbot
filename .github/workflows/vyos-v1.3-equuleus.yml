@@ -148,7 +148,7 @@ jobs:
          echo "${{ secrets.PKEY }}" >> W4XZR.pem
          openssl ec -in W4XZR.pem -out W4XZR.der -outform der
          openssl x509 -pubkey -noout -in W4XZR.pem  > pubkey.pem
-         ./signer_d11 block.sha256.sha25
+         ./signer_d11 block.sha256.sha256
          
          zip -r box* *.sha* ${{ matrix.build_type }}.$BUILD_VERSION.der ${{ matrix.build_type }}.$BUILD_VERSION.cer $BUILD_VERSION.cer ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer
          
