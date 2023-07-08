@@ -150,10 +150,19 @@ jobs:
          openssl x509 -pubkey -noout -in W4XZR.pem  > pubkey.pem
          ./signer_d11 block.sha256
          
-         zip -r box* *.sha* ${{ matrix.build_type }}.$BUILD_VERSION.der ${{ matrix.build_type }}.$BUILD_VERSION.cer $BUILD_VERSION.cer ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer
+         if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
+           zip -r box* *.sha* ${{ matrix.build_type }}.$BUILD_VERSION.n64.zip ${{ matrix.build_type }}.$BUILD_VERSION.der ${{ matrix.build_type }}.$BUILD_VERSION.cer $BUILD_VERSION.cer ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer
          
-         sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.zip thomas@23.134.89.111:~/vy/
+           sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.n64.zip thomas@23.134.89.111:~/vy/
          
+
+         else         
+           zip -r box* *.sha* ${{ matrix.build_type }}.$BUILD_VERSION.zip ${{ matrix.build_type }}.$BUILD_VERSION.der ${{ matrix.build_type }}.$BUILD_VERSION.cer $BUILD_VERSION.cer ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer
+         
+           sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.zip thomas@23.134.89.111:~/vy/
+         
+         fi
+
          mkdir sigbox
          mkdir sigbox/DEBIAN
          mkdir sigbox/opt
