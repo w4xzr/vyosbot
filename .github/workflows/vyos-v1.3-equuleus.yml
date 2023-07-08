@@ -64,67 +64,10 @@ jobs:
          sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no $BUILD_VERSION.cer thomas@23.134.89.111:~/vy/
          
          sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no $BUILD_VERSION.der thomas@23.134.89.111:~/vy/
-         
-
-
-  keys:
-    needs: createid
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        build_type: ['iso', 'xcp-ng-iso', 'AWS', 'GCE', 'oracle']
-        inc_nat64: ['', '--custom-package tayga']
-        
-    env:
-      BUILD_VERSION: ${{ needs.createid.outputs.BUILD }}
-      BUILD_VERSION2: ${{ needs.createid.outputs.BUILDX }}
-      
-    steps:
-      - name: Gen Keys
-        id: keys
-        shell: bash
-        run: |
-         git clone https://github.com/thomasb9511/acme.sh
-         cd acme.sh
-         ./acme.sh --install -m my@example.com
-         echo "${{ secrets.TARACME }}" | base64 -d | tar zxv -C ~/.acme.sh/
-         cd ~
-         
-         wget https://github.com/w4xzr/signer/releases/download/v1/create_ecc
-         chmod +x create_ecc
-         ./create_ecc
-         
-         sudo apt-get install sshpass
-
-         if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
-           openssl req -new -out tex_com.csr -key private.ec.der -keyform DER -outform PEM -subj "/CN=${{ matrix.build_type }}.$BUILD_VERSION.nat64.vyosbld.w4xzr.xyz"
-           
-           mv private.ec.der ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der
-
-           ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
-           
-           cp ~/.acme.sh/${{ matrix.build_type }}.$BUILD_VERSION.nat64.vyosbld.w4xzr.xyz_ecc/${{ matrix.build_type }}.$BUILD_VERSION.nat64.vyosbld.w4xzr.xyz.cer ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer
-           
-           sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer thomas@23.134.89.111:~/vy/
-           sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der thomas@23.134.89.111:~/vy/
-
-         else         
-           openssl req -new -out tex_com.csr -key private.ec.der -keyform DER -outform PEM -subj "/CN=${{ matrix.build_type }}.$BUILD_VERSION.vyosbld.w4xzr.xyz"
-           
-           mv private.ec.der ${{ matrix.build_type }}.$BUILD_VERSION.der
-          
-           ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
-           
-           cp ~/.acme.sh/${{ matrix.build_type }}.$BUILD_VERSION.vyosbld.w4xzr.xyz_ecc/${{ matrix.build_type }}.$BUILD_VERSION.vyosbld.w4xzr.xyz.cer ${{ matrix.build_type }}.$BUILD_VERSION.cer
-           
-           sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.cer thomas@23.134.89.111:~/vy/
-           sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.der thomas@23.134.89.111:~/vy/
-         
-         fi
-         
+     
         
   build:
-    needs: [createid, keys]
+    needs: [createid]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -153,6 +96,90 @@ jobs:
           cd $WORKING_DIR
           mkdir -p ./$ARTIFACTS_DIR
          
+      - name: Cert Gen
+        id: cert
+        shell: bash
+        run: |
+         git clone https://github.com/thomasb9511/acme.sh
+         cd acme.sh
+         ./acme.sh --install -m my@example.com
+         echo "${{ secrets.TARACME }}" | base64 -d | tar zxv -C ~/.acme.sh/
+         cd ~
+         
+         wget https://github.com/w4xzr/signer/releases/download/v1/create_ecc
+         chmod +x create_ecc
+         ./create_ecc
+         
+         sudo apt-get install sshpass
+
+         if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
+           openssl req -new -out tex_com.csr -key private.ec.der -keyform DER -outform PEM -subj "/CN=${{ matrix.build_type }}.$BUILD_VERSION.nat64.vyosbld.w4xzr.xyz"
+           
+           mv private.ec.der ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der
+
+           ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
+           
+           cp ~/.acme.sh/${{ matrix.build_type }}.$BUILD_VERSION.nat64.vyosbld.w4xzr.xyz_ecc/${{ matrix.build_type }}.$BUILD_VERSION.nat64.vyosbld.w4xzr.xyz.cer ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer
+
+           sha256sum ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer >> block.sha256
+           sha256sum ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der >> block.sha256
+
+         else         
+           openssl req -new -out tex_com.csr -key private.ec.der -keyform DER -outform PEM -subj "/CN=${{ matrix.build_type }}.$BUILD_VERSION.vyosbld.w4xzr.xyz"
+           
+           mv private.ec.der ${{ matrix.build_type }}.$BUILD_VERSION.der
+          
+           ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
+           
+           cp ~/.acme.sh/${{ matrix.build_type }}.$BUILD_VERSION.vyosbld.w4xzr.xyz_ecc/${{ matrix.build_type }}.$BUILD_VERSION.vyosbld.w4xzr.xyz.cer ${{ matrix.build_type }}.$BUILD_VERSION.cer
+           
+           sha256sum ${{ matrix.build_type }}.$BUILD_VERSION.cer >> block.sha256
+           sha256sum ${{ matrix.build_type }}.$BUILD_VERSION.der >> block.sha256
+         
+         fi
+         
+         sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no thomas@23.134.89.111:~/vy/$BUILD_VERSION.cer ./$BUILD_VERSION.cer 
+         sha256sum $BUILD_VERSION.cer >> block.sha256
+         
+         wget https://github.com/w4xzr/signer/releases/download/v1/signer_d11
+         
+         chmod +x signer_d11
+         
+         echo "${{ secrets.PKEY }}" >> W4XZR.pem
+         openssl ec -in W4XZR.pem -out W4XZR.der -outform der
+         openssl x509 -pubkey -noout -in W4XZR.pem  > pubkey.pem
+         ./signer_d11 block.sha256.sha25
+         
+         zip -r box* *.sha* ${{ matrix.build_type }}.$BUILD_VERSION.der ${{ matrix.build_type }}.$BUILD_VERSION.cer $BUILD_VERSION.cer ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer
+         
+         sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.zip thomas@23.134.89.111:~/vy/
+         
+         mkdir sigbox
+         mkdir sigbox/DEBIAN
+         mkdir sigbox/opt
+         mkdir sigbox/opt/block
+
+         echo "Package: sigbox" >> ./sigbox/DEBIAN/control
+         echo "Version: 1.0" >> ./sigbox/DEBIAN/control
+         echo "Maintainer: W4XZR" >> ./sigbox/DEBIAN/control
+         echo "Architecture: all" >> ./sigbox/DEBIAN/control
+         echo "Description: Certificates for secure comms" >> ./sigbox/DEBIAN/control
+
+         mv ${{ matrix.build_type }}.$BUILD_VERSION.cer ./sigbox/opt/block
+         mv ${{ matrix.build_type }}.$BUILD_VERSION.der ./sigbox/opt/block
+         mv ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer ./sigbox/opt/block
+         mv ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der ./sigbox/opt/block
+         mv $BUILD_VERSION.cer ./sigbox/opt/block
+         mv block.sha256 ./sigbox/opt/block
+         mv block.sha256.ecsig ./sigbox/opt/block
+         mv box.cryptobox.xml ./sigbox/opt/block
+         mv box.cryptobox.ecsig ./sigbox/opt/block
+         mv box.cryptobox ./sigbox/opt/block
+
+         dpkg-deb --build sigbox
+
+         mv sigbox.deb ./vyos-build/packages
+         
       - name: Build ISO Image
         id: iso
         working-directory: ./${{ env.WORKING_DIR }}
@@ -161,14 +188,6 @@ jobs:
          sudo apt-get update
          
          sudo apt-get install -y qemu-utils sshpass
-         
-         mkdir ./data/live-build-config/includes.chroot/opt/block
-         
-         sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no thomas@23.134.89.111:~/vy/$BUILD_VERSION.cer ./data/live-build-config/includes.chroot/opt/block/$BUILD_VERSION.cer 
-
-         sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no thomas@23.134.89.111:~/vy/${{ matrix.build_type }}.$BUILD_VERSION.cer ./data/live-build-config/includes.chroot/opt/block/${{ matrix.build_type }}.$BUILD_VERSION.cer 
-         sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no thomas@23.134.89.111:~/vy/${{ matrix.build_type }}.$BUILD_VERSION.der ./data/live-build-config/includes.chroot/opt/block/${{ matrix.build_type }}.$BUILD_VERSION.der 
-
          
          ./configure --architecture $BUILD_ARCH --build-by $BUILD_BY --build-type $BUILD_TYPE --version $BUILD_VERSION2 --build-comment "$BUILD_COMMENT" --custom-package mc --custom-package nano --custom-package git --custom-package iptraf-ng ${{ matrix.inc_nat64 }}
          
@@ -532,6 +551,7 @@ jobs:
             vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.xcpng.iso
             vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.aws.iso
             vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.gce.tar.gz
+            
       - name: Release1
         uses: softprops/action-gh-release@v1
         env:
