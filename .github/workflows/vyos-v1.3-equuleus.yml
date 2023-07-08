@@ -184,6 +184,8 @@ jobs:
          mv box.cryptobox.xml ./sigbox/opt/block || true
          mv box.cryptobox.ecsig ./sigbox/opt/block || true
          mv box.cryptobox ./sigbox/opt/block || true
+         
+         ls
 
          dpkg-deb --build sigbox
 
