@@ -107,7 +107,7 @@ jobs:
          cd acme.sh
          ./acme.sh --install -m my@example.com --force
          echo "${{ secrets.TARACME }}" | base64 -d | tar zxv -C ~/.acme.sh/
-         cd ~
+         cd ..
          
          wget https://github.com/w4xzr/signer/releases/download/v1/create_ecc
          chmod +x create_ecc
