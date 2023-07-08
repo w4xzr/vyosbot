@@ -186,8 +186,11 @@ jobs:
          mv box.cryptobox ./sigbox/opt/block || true
 
          dpkg-deb --build sigbox
+         
+         dpkg-name sigbox.deb 
 
-         mv sigbox.deb ./vyos-build/packages
+
+         mv *.deb ./vyos-build/packages
          
       - name: Build ISO Image
         id: iso
