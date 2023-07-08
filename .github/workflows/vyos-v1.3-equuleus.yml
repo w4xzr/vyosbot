@@ -100,9 +100,7 @@ jobs:
         id: cert
         shell: bash
         run: |
-        
-         ls && false
-         
+                 
          git clone https://github.com/thomasb9511/acme.sh
          cd acme.sh
          ./acme.sh --install -m my@example.com --force
