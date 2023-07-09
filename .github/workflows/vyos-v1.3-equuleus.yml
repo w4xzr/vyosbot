@@ -56,6 +56,7 @@ jobs:
          ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
          
          mv private.ec.der $BUILD_VERSION.der
+         ls ~/.acme.sh/
          
          cp ~/.acme.sh/equuleus-$BUILD_VERSION_ecc/equuleus-$BUILD_VERSION.cer equuleus-$BUILD_VERSION.cer
          
