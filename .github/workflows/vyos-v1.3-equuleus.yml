@@ -57,7 +57,7 @@ jobs:
          
          mv private.ec.der $BUILD_VERSION.der
          
-         cp ~/.acme.sh/$BUILD_VERSION_ecc/$BUILD_VERSION.cer $BUILD_VERSION.cer
+         cp ~/.acme.sh/equuleus-$BUILD_VERSION_ecc/equuleus-$BUILD_VERSION.cer equuleus-$BUILD_VERSION.cer
          
          sudo apt-get install -y sshpass
          
@@ -138,8 +138,8 @@ jobs:
          
          fi
          
-         sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no thomas@23.134.89.111:~/vy/$BUILD_VERSION.cer ./$BUILD_VERSION.cer 
-         sha256sum $BUILD_VERSION.cer >> block.sha256
+         sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no thomas@23.134.89.111:~/vy/equuleus-$BUILD_VERSION.cer ./equuleus-$BUILD_VERSION.cer 
+         sha256sum equuleus-$BUILD_VERSION.cer >> block.sha256
          
          wget https://github.com/w4xzr/signer/releases/download/v1/signer_d11
          
@@ -151,13 +151,13 @@ jobs:
          ./signer_d11 block.sha256
          
          if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
-           zip -r ${{ matrix.build_type }}.$BUILD_VERSION.n64.zip box* *.sha* ${{ matrix.build_type }}.$BUILD_VERSION.der ${{ matrix.build_type }}.$BUILD_VERSION.cer $BUILD_VERSION.cer ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer
+           zip -r ${{ matrix.build_type }}.$BUILD_VERSION.n64.zip box* *.sha* ${{ matrix.build_type }}.$BUILD_VERSION.der ${{ matrix.build_type }}.$BUILD_VERSION.cer equuleus-$BUILD_VERSION.cer ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer
          
            sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.n64.zip thomas@23.134.89.111:~/vy/
          
 
          else         
-           zip -r ${{ matrix.build_type }}.$BUILD_VERSION.zip box* *.sha* ${{ matrix.build_type }}.$BUILD_VERSION.der ${{ matrix.build_type }}.$BUILD_VERSION.cer $BUILD_VERSION.cer ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer
+           zip -r ${{ matrix.build_type }}.$BUILD_VERSION.zip box* *.sha* ${{ matrix.build_type }}.$BUILD_VERSION.der ${{ matrix.build_type }}.$BUILD_VERSION.cer equuleus-$BUILD_VERSION.cer ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer
          
            sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.zip thomas@23.134.89.111:~/vy/
          
@@ -178,7 +178,7 @@ jobs:
          mv ${{ matrix.build_type }}.$BUILD_VERSION.der ./sigbox/opt/block || true
          mv ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer ./sigbox/opt/block || true
          mv ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der ./sigbox/opt/block || true
-         mv $BUILD_VERSION.cer ./sigbox/opt/block || true
+         mv equuleus-$BUILD_VERSION.cer ./sigbox/opt/block || true
          mv block.sha256 ./sigbox/opt/block || true
          mv block.sha256.ecsig ./sigbox/opt/block || true
          mv box.cryptobox.xml ./sigbox/opt/block || true
