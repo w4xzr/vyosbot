@@ -328,8 +328,8 @@ jobs:
         working-directory: ./${{ env.WORKING_DIR }}
         shell: bash
         run: |
-         cp vyos-$${{ env.BUILD_VERSION }}I6.iso vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso
-         cp vyos-$${{ env.BUILD_VERSION }}I0.iso vyos-$BUILD_VERSION-$BUILD_ARCH.iso
+         cp vyos-${{ env.BUILD_VERSION }}I6.iso vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso
+         cp vyos-${{ env.BUILD_VERSION }}I0.iso vyos-$BUILD_VERSION-$BUILD_ARCH.iso
          
          if [ '${{ matrix.build_type }}' == 'qemu' ]; then
           if [ '${{ matrix.nat64 }}' == 'yes' ]; then
