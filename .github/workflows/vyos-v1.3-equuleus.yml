@@ -56,17 +56,8 @@ jobs:
          ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
          
          mv private.ec.der $BUILD_VERSION.der
-         ls ~/.acme.sh/
-         
-         cd ~/.acme.sh/$BUILD_VERSION_ecc
-         
-         pwd
-         
-         ls
-         
-         cp "$BUILD_VERSION.cer" ~/$BUILD_VERSION.cer
-         
-         cd ~
+
+         cp "~/.acme.sh/${{ env.BUILD_VERSION }}_ecc/${{ env.BUILD_VERSION }}.cer" $BUILD_VERSION.cer
          
          sudo apt-get install -y sshpass
          
