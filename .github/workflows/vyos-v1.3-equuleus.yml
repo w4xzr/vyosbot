@@ -251,7 +251,7 @@ jobs:
            ls ./build/
            
            cp -f ./build/vyos-${{ env.BUILD_VERSION22 }}-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$${{ env.BUILD_VERSION22 }}.iso
-         
+         fi
          if [ '${{ matrix.build_type }}' == 'oracle' ]; then
            sudo make ${{ matrix.build_type }} 
           
