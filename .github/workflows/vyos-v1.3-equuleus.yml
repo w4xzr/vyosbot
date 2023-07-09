@@ -58,7 +58,11 @@ jobs:
          mv private.ec.der $BUILD_VERSION.der
          ls ~/.acme.sh/
          
-         cp "~/.acme.sh/*_ecc/$BUILD_VERSION.cer" $BUILD_VERSION.cer
+         cd ~/.acme.sh/$BUILD_VERSION_ecc
+         
+         cp "$BUILD_VERSION.cer" ~/$BUILD_VERSION.cer
+         
+         cd ~
          
          sudo apt-get install -y sshpass
          
