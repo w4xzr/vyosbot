@@ -222,14 +222,14 @@ jobs:
            ls ./build/
 
            cp -f ./build/vyos-${{ env.BUILD_VERSION22 }}-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-${{ env.BUILD_VERSION22 }}.iso 
-         
+         fi
          if [ '${{ matrix.build_type }}' == 'AWS' ]; then
            sudo make ${{ matrix.build_type }} 
           
            ls ./build/
            
           cp -f ./build/vyos-${{ env.BUILD_VERSION22 }}-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$${{ env.BUILD_VERSION22 }}.iso
-         
+         fi
          if [ '${{ matrix.build_type }}' == 'GCE' ]; then
            sudo make ${{ matrix.build_type }} 
           
@@ -237,14 +237,14 @@ jobs:
            
            cp -f ./build/VyOS-$(date +%Y%m%d).tar.gz ./$ARTIFACTS_DIR/vyos-$${{ env.BUILD_VERSION22 }}.tar.gz
 
-         
+          fi
           if [ '${{ matrix.build_type }}' == 'xcp-ng-iso' ]; then
            sudo make ${{ matrix.build_type }} 
           
            ls ./build/
            
            cp -f ./build/vyos-${{ env.BUILD_VERSION22 }}-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$${{ env.BUILD_VERSION22 }}.iso
-         
+         fi
          if [ '${{ matrix.build_type }}' == 'azure' ]; then
            sudo make ${{ matrix.build_type }} 
           
@@ -252,13 +252,13 @@ jobs:
            
            cp -f ./build/vyos-${{ env.BUILD_VERSION22 }}-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$${{ env.BUILD_VERSION22 }}.iso
          
-          if [ '${{ matrix.build_type }}' == 'oracle' ]; then
+         if [ '${{ matrix.build_type }}' == 'oracle' ]; then
            sudo make ${{ matrix.build_type }} 
           
            ls ./build/
 
            cp -f ./build/VyOS-$(date +%Y%m%d).qcow2 ./$ARTIFACTS_DIR/vyos-${{ env.BUILD_VERSION22 }}.qcow2
-
+         fi
          
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
