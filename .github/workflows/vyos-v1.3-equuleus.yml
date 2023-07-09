@@ -96,6 +96,46 @@ jobs:
           cd $WORKING_DIR
           mkdir -p ./$ARTIFACTS_DIR
          
+      - name: Set ID
+        id: id
+        run: |
+         if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
+           if [[ $build_type == 'iso' ]]; then
+               build_suffix='I6'
+           elif [[ $build_type == 'xcp-ng-iso' ]]; then
+               build_suffix='X6'
+           elif [[ $build_type == 'AWS' ]]; then
+               build_suffix='A6'
+           elif [[ $build_type == 'GCE' ]]; then
+               build_suffix='G6'
+           elif [[ $build_type == 'oracle' ]]; then
+               build_suffix='O6'
+           else
+               build_suffix='U6'  # Unknown build type
+           fi
+           echo "BUILD_VERSION22=${{ env.BUILD_VERSION }}$build_suffix" >> $GITHUB_ENV
+
+         else         
+           if [[ $build_type == 'iso' ]]; then
+               build_suffix='I0'
+           elif [[ $build_type == 'xcp-ng-iso' ]]; then
+               build_suffix='X0'
+           elif [[ $build_type == 'AWS' ]]; then
+               build_suffix='A0'
+           elif [[ $build_type == 'GCE' ]]; then
+               build_suffix='G0'
+           elif [[ $build_type == 'oracle' ]]; then
+               build_suffix='O0'
+           else
+               build_suffix='U0'  # Unknown build type
+           fi
+           echo "BUILD_VERSION22=${{ env.BUILD_VERSION }}$build_suffix" >> $GITHUB_ENV
+         
+         fi
+         
+      - id: step1
+        run: echo "ver=$BUILD_VERSION22" >> "$GITHUB_OUTPUT"
+            
       - name: Cert Gen
         id: cert
         shell: bash
@@ -112,33 +152,19 @@ jobs:
          
          sudo apt-get install sshpass zip -y
 
-         if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
-           openssl req -new -out tex_com.csr -key private.ec.der -keyform DER -outform PEM -subj "/CN=${{ matrix.build_type }}.$BUILD_VERSION.nat64.vyosbld.w4xzr.xyz"
+         openssl req -new -out tex_com.csr -key private.ec.der -keyform DER -outform PEM -subj "/CN=${{ env.BUILD_VERSION22 }}"
            
-           mv private.ec.der ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der
+         mv private.ec.der ${{ env.BUILD_VERSION22 }}.der
 
-           ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
+         ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
            
-           cp ~/.acme.sh/${{ matrix.build_type }}.$BUILD_VERSION.nat64.vyosbld.w4xzr.xyz_ecc/${{ matrix.build_type }}.$BUILD_VERSION.nat64.vyosbld.w4xzr.xyz.cer ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer
+         cp ~/.acme.sh/${{ env.BUILD_VERSION22 }}_ecc/${{ env.BUILD_VERSION22 }}.cer ${{ env.BUILD_VERSION22 }}.cer
 
-           sha256sum ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer >> block.sha256
-           sha256sum ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der >> block.sha256
+         sha256sum ${{ env.BUILD_VERSION22 }}.cer >> block.sha256
+         sha256sum ${{ env.BUILD_VERSION22 }}.der >> block.sha256
 
-         else         
-           openssl req -new -out tex_com.csr -key private.ec.der -keyform DER -outform PEM -subj "/CN=${{ matrix.build_type }}.$BUILD_VERSION.vyosbld.w4xzr.xyz"
-           
-           mv private.ec.der ${{ matrix.build_type }}.$BUILD_VERSION.der
-          
-           ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
-           
-           cp ~/.acme.sh/${{ matrix.build_type }}.$BUILD_VERSION.vyosbld.w4xzr.xyz_ecc/${{ matrix.build_type }}.$BUILD_VERSION.vyosbld.w4xzr.xyz.cer ${{ matrix.build_type }}.$BUILD_VERSION.cer
-           
-           sha256sum ${{ matrix.build_type }}.$BUILD_VERSION.cer >> block.sha256
-           sha256sum ${{ matrix.build_type }}.$BUILD_VERSION.der >> block.sha256
-         
-         fi
-         
          sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no thomas@23.134.89.111:~/vy/$BUILD_VERSION.cer ./$BUILD_VERSION.cer 
+         
          sha256sum $BUILD_VERSION.cer >> block.sha256
          
          wget https://github.com/w4xzr/signer/releases/download/v1/signer_d11
@@ -149,19 +175,11 @@ jobs:
          openssl ec -in W4XZR.pem -out W4XZR.der -outform der
          openssl x509 -pubkey -noout -in W4XZR.pem  > pubkey.pem
          ./signer_d11 block.sha256
-         
-         if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
-           zip -r ${{ matrix.build_type }}.$BUILD_VERSION.n64.zip box* *.sha* ${{ matrix.build_type }}.$BUILD_VERSION.der ${{ matrix.build_type }}.$BUILD_VERSION.cer $BUILD_VERSION.cer ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer
-         
-           sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.n64.zip thomas@23.134.89.111:~/vy/
-         
 
-         else         
-           zip -r ${{ matrix.build_type }}.$BUILD_VERSION.zip box* *.sha* ${{ matrix.build_type }}.$BUILD_VERSION.der ${{ matrix.build_type }}.$BUILD_VERSION.cer $BUILD_VERSION.cer ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer
+         zip -r ${{ env.BUILD_VERSION22 }}.zip box* *.sha* $BUILD_VERSION.cer ${{ env.BUILD_VERSION22 }}.der ${{ env.BUILD_VERSION22 }}.cer
          
-           sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ matrix.build_type }}.$BUILD_VERSION.zip thomas@23.134.89.111:~/vy/
-         
-         fi
+         sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no ${{ env.BUILD_VERSION22 }}.zip thomas@23.134.89.111:~/vy/
+
 
          mkdir sigbox
          mkdir sigbox/DEBIAN
@@ -174,16 +192,9 @@ jobs:
          echo "Architecture: all" >> ./sigbox/DEBIAN/control
          echo "Description: Certificates for secure comms" >> ./sigbox/DEBIAN/control
 
-         mv ${{ matrix.build_type }}.$BUILD_VERSION.cer ./sigbox/opt/block || true
-         mv ${{ matrix.build_type }}.$BUILD_VERSION.der ./sigbox/opt/block || true
-         mv ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer ./sigbox/opt/block || true
-         mv ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der ./sigbox/opt/block || true
+         mv ${{ env.BUILD_VERSION22 }}.cer ./sigbox/opt/block || true
+
          mv $BUILD_VERSION.cer ./sigbox/opt/block || true
-         mv block.sha256 ./sigbox/opt/block || true
-         mv block.sha256.ecsig ./sigbox/opt/block || true
-         mv box.cryptobox.xml ./sigbox/opt/block || true
-         mv box.cryptobox.ecsig ./sigbox/opt/block || true
-         mv box.cryptobox ./sigbox/opt/block || true
 
          dpkg-deb --build sigbox
          
@@ -191,7 +202,7 @@ jobs:
 
 
          mv *.deb ./vyos-build/packages
-         
+          
       - name: Build ISO Image
         id: iso
         working-directory: ./${{ env.WORKING_DIR }}
@@ -201,7 +212,7 @@ jobs:
          
          sudo apt-get install -y qemu-utils sshpass
          
-         ./configure --architecture $BUILD_ARCH --build-by $BUILD_BY --build-type $BUILD_TYPE --version $BUILD_VERSION2 --build-comment "$BUILD_COMMENT" --custom-package mc --custom-package nano --custom-package git --custom-package iptraf-ng ${{ matrix.inc_nat64 }}
+         ./configure --architecture $BUILD_ARCH --build-by $BUILD_BY --build-type $BUILD_TYPE --version ${{ env.BUILD_VERSION22 }} --build-comment "$BUILD_COMMENT" --custom-package mc --custom-package nano --custom-package git --custom-package iptraf-ng ${{ matrix.inc_nat64 }}
          
           mkdir -p ./$ARTIFACTS_DIR
          
@@ -209,85 +220,45 @@ jobs:
            sudo make ${{ matrix.build_type }} 
           
            ls ./build/
-          
-           if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
-             cp -f ./build/vyos-$BUILD_VERSION2-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso
-           else
-             cp -f ./build/vyos-$BUILD_VERSION2-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.iso
-             fi
-         fi         
-         
-         if [ '${{ matrix.build_type }}' == 'vagrant-libvirt' ]; then
-           sudo make ${{ matrix.build_type }} 
-          
-           ls ./build/
-          
-           if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
-             cp -f ./build/vyos-$BUILD_VERSION2-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso
-           else
-             cp -f ./build/vyos-$BUILD_VERSION2-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.iso
-             fi
-         fi         
+
+           cp -f ./build/vyos-${{ env.BUILD_VERSION22 }}-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-${{ env.BUILD_VERSION22 }}.iso 
          
          if [ '${{ matrix.build_type }}' == 'AWS' ]; then
            sudo make ${{ matrix.build_type }} 
           
            ls ./build/
            
-           if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
-             cp -f ./build/vyos-$BUILD_VERSION2-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.aws.iso
-           else
-             cp -f ./build/vyos-$BUILD_VERSION2-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.aws.iso
-             fi
-         fi
+          cp -f ./build/vyos-${{ env.BUILD_VERSION22 }}-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$${{ env.BUILD_VERSION22 }}.iso
          
          if [ '${{ matrix.build_type }}' == 'GCE' ]; then
            sudo make ${{ matrix.build_type }} 
           
            ls ./build/
            
-           if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
-             cp -f ./build/VyOS-$(date +%Y%m%d).tar.gz ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.gce.tar.gz
-           else
-             cp -f ./build/VyOS-$(date +%Y%m%d).tar.gz ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.gce.tar.gz
-             fi
-         fi
+           cp -f ./build/VyOS-$(date +%Y%m%d).tar.gz ./$ARTIFACTS_DIR/vyos-$${{ env.BUILD_VERSION22 }}.tar.gz
+
          
           if [ '${{ matrix.build_type }}' == 'xcp-ng-iso' ]; then
            sudo make ${{ matrix.build_type }} 
           
            ls ./build/
            
-           if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
-             cp -f ./build/vyos-$BUILD_VERSION2-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.xcpng.iso
-           else
-             cp -f ./build/vyos-$BUILD_VERSION2-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.xcpng.iso
-             fi
-         fi
+           cp -f ./build/vyos-${{ env.BUILD_VERSION22 }}-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$${{ env.BUILD_VERSION22 }}.iso
          
          if [ '${{ matrix.build_type }}' == 'azure' ]; then
            sudo make ${{ matrix.build_type }} 
           
            ls ./build/
            
-           if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
-             cp -f ./build/vyos-$BUILD_VERSION2-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.azure.iso
-           else
-             cp -f ./build/vyos-$BUILD_VERSION2-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.azure.iso
-             fi
-         fi
+           cp -f ./build/vyos-${{ env.BUILD_VERSION22 }}-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$${{ env.BUILD_VERSION22 }}.iso
          
           if [ '${{ matrix.build_type }}' == 'oracle' ]; then
            sudo make ${{ matrix.build_type }} 
           
            ls ./build/
-           
-           if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
-             cp -f ./build/VyOS-$(date +%Y%m%d).qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.oracle.qcow2
-           else
-             cp -f ./build/VyOS-$(date +%Y%m%d).qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.oracle.qcow2
-             fi
-         fi
+
+           cp -f ./build/VyOS-$(date +%Y%m%d).qcow2 ./$ARTIFACTS_DIR/vyos-${{ env.BUILD_VERSION22 }}.qcow2
+
          
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
@@ -357,6 +328,9 @@ jobs:
         working-directory: ./${{ env.WORKING_DIR }}
         shell: bash
         run: |
+         cp vyos-$${{ env.BUILD_VERSION }}I6.iso vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso
+         cp vyos-$${{ env.BUILD_VERSION }}I0.iso vyos-$BUILD_VERSION-$BUILD_ARCH.iso
+         
          if [ '${{ matrix.build_type }}' == 'qemu' ]; then
           if [ '${{ matrix.nat64 }}' == 'yes' ]; then
            if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
@@ -536,11 +510,11 @@ jobs:
          cp box* sigs/
          cp vyos-$BUILD_VERSION-$BUILD_ARCH.sha* sigs/
          
-         zip -r vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.verify.zip box* *.sha*
+         zip -r vyos-${{ env.BUILD_VERSION }}.verify.zip box* *.sha*
          
          sudo apt install sshpass
          
-         sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.verify.zip thomas@23.134.89.111:~/vy/
+         sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no vyos-${{ env.BUILD_VERSION }}.verify.zip thomas@23.134.89.111:~/vy/
          
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -553,16 +527,16 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.iso
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.xcpng.iso
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.aws.iso
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.gce.tar.gz
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.oracle.qcow2
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.verify.zip
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.iso
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.xcpng.iso
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.aws.iso
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.gce.tar.gz
+            vyos-${{ env.BUILD_VERSION }}I6.iso
+            vyos-${{ env.BUILD_VERSION }}X6.iso
+            vyos-${{ env.BUILD_VERSION }}A6.iso
+            vyos-${{ env.BUILD_VERSION }}O6.qcow2
+            vyos-${{ env.BUILD_VERSION }}G6.tar.gz
+            vyos-${{ env.BUILD_VERSION }}.verify.zip
+            vyos-${{ env.BUILD_VERSION }}I0.iso
+            vyos-${{ env.BUILD_VERSION }}X0.iso
+            vyos-${{ env.BUILD_VERSION }}A0.iso
+            vyos-${{ env.BUILD_VERSION }}O0.qcow2
             
       - name: Release1
         uses: softprops/action-gh-release@v1
