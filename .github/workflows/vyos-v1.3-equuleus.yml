@@ -100,15 +100,15 @@ jobs:
         id: id
         run: |
          if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
-           if [[ $build_type == 'iso' ]]; then
+           if [[ ${{ matrix.build_type }} == 'iso' ]]; then
                build_suffix='I6'
-           elif [[ $build_type == 'xcp-ng-iso' ]]; then
+           elif [[ ${{ matrix.build_type }} == 'xcp-ng-iso' ]]; then
                build_suffix='X6'
-           elif [[ $build_type == 'AWS' ]]; then
+           elif [[ ${{ matrix.build_type }} == 'AWS' ]]; then
                build_suffix='A6'
-           elif [[ $build_type == 'GCE' ]]; then
+           elif [[ ${{ matrix.build_type }} == 'GCE' ]]; then
                build_suffix='G6'
-           elif [[ $build_type == 'oracle' ]]; then
+           elif [[ ${{ matrix.build_type }} == 'oracle' ]]; then
                build_suffix='O6'
            else
                build_suffix='U6'  # Unknown build type
@@ -116,15 +116,15 @@ jobs:
            echo "BUILD_VERSION22=${{ env.BUILD_VERSION }}$build_suffix" >> $GITHUB_ENV
 
          else         
-           if [[ $build_type == 'iso' ]]; then
+           if [[ ${{ matrix.build_type }} == 'iso' ]]; then
                build_suffix='I0'
-           elif [[ $build_type == 'xcp-ng-iso' ]]; then
+           elif [[ ${{ matrix.build_type }} == 'xcp-ng-iso' ]]; then
                build_suffix='X0'
-           elif [[ $build_type == 'AWS' ]]; then
+           elif [[ ${{ matrix.build_type }} == 'AWS' ]]; then
                build_suffix='A0'
-           elif [[ $build_type == 'GCE' ]]; then
+           elif [[ ${{ matrix.build_type }} == 'GCE' ]]; then
                build_suffix='G0'
-           elif [[ $build_type == 'oracle' ]]; then
+           elif [[ ${{ matrix.build_type }} == 'oracle' ]]; then
                build_suffix='O0'
            else
                build_suffix='U0'  # Unknown build type
