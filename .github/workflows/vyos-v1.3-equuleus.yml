@@ -139,7 +139,7 @@ jobs:
          fi
          
          sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no thomas@23.134.89.111:~/vy/$BUILD_VERSION.cer ./$BUILD_VERSION.cer 
-         sha256sum equuleus-$BUILD_VERSION.cer >> block.sha256
+         sha256sum $BUILD_VERSION.cer >> block.sha256
          
          wget https://github.com/w4xzr/signer/releases/download/v1/signer_d11
          
