@@ -60,6 +60,10 @@ jobs:
          
          cd ~/.acme.sh/$BUILD_VERSION_ecc
          
+         pwd
+         
+         ls
+         
          cp "$BUILD_VERSION.cer" ~/$BUILD_VERSION.cer
          
          cd ~
