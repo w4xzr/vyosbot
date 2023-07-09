@@ -58,7 +58,7 @@ jobs:
          mv private.ec.der $BUILD_VERSION.der
          ls ~/.acme.sh/
          
-         cp ~/.acme.sh/equuleus-$BUILD_VERSION_ecc/equuleus-$BUILD_VERSION.cer equuleus-$BUILD_VERSION.cer
+         cp ~/.acme.sh/$BUILD_VERSION_ecc/$BUILD_VERSION.cer $BUILD_VERSION.cer
          
          sudo apt-get install -y sshpass
          
