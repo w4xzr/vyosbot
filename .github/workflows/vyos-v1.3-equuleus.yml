@@ -51,13 +51,13 @@ jobs:
          chmod +x create_ecc
          ./create_ecc
          
-         openssl req -new -out tex_com.csr -key private.ec.der -keyform DER -outform PEM -subj "/CN=$BUILD_VERSION.vyosbld.w4xzr.xyz"
+         openssl req -new -out tex_com.csr -key private.ec.der -keyform DER -outform PEM -subj "/CN=$BUILD_VERSION"
          
          ~/.acme.sh/./acme.sh ~/.acme.sh/./acme.sh --sign-csr --csr tex_com.csr --webroot . --server https://acme-v02-api.pkiaas.io/directory
          
          mv private.ec.der $BUILD_VERSION.der
          
-         cp ~/.acme.sh/$BUILD_VERSION.vyosbld.w4xzr.xyz_ecc/$BUILD_VERSION.vyosbld.w4xzr.xyz.cer $BUILD_VERSION.cer
+         cp ~/.acme.sh/$BUILD_VERSION_ecc/$BUILD_VERSION.cer $BUILD_VERSION.cer
          
          sudo apt-get install -y sshpass
          
