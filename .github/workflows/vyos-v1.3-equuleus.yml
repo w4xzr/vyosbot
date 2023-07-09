@@ -178,7 +178,7 @@ jobs:
          mv ${{ matrix.build_type }}.$BUILD_VERSION.der ./sigbox/opt/block || true
          mv ${{ matrix.build_type }}.$BUILD_VERSION.nat64.cer ./sigbox/opt/block || true
          mv ${{ matrix.build_type }}.$BUILD_VERSION.nat64.der ./sigbox/opt/block || true
-         mv equuleus-$BUILD_VERSION.cer ./sigbox/opt/block || true
+         mv $BUILD_VERSION.cer ./sigbox/opt/block || true
          mv block.sha256 ./sigbox/opt/block || true
          mv block.sha256.ecsig ./sigbox/opt/block || true
          mv box.cryptobox.xml ./sigbox/opt/block || true
