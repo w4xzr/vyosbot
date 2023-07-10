@@ -230,14 +230,14 @@ jobs:
           
            ls ./build/
            
-          cp -f ./build/vyos-* ./$ARTIFACTS_DIR/vyos-$${{ env.BUILD_VERSION22 }}.iso
+          cp -f ./build/vyos-* ./$ARTIFACTS_DIR/vyos-${{ env.BUILD_VERSION22 }}.iso
          fi
          if [ '${{ matrix.build_type }}' == 'GCE' ]; then
            sudo make ${{ matrix.build_type }} 
           
            ls ./build/
            
-           cp -f ./build/VyOS-$(date +%Y%m%d).tar.gz ./$ARTIFACTS_DIR/vyos-$${{ env.BUILD_VERSION22 }}.tar.gz
+           cp -f ./build/VyOS-$(date +%Y%m%d).tar.gz ./$ARTIFACTS_DIR/vyos-${{ env.BUILD_VERSION22 }}.tar.gz
 
           fi
           if [ '${{ matrix.build_type }}' == 'xcp-ng-iso' ]; then
@@ -245,14 +245,14 @@ jobs:
           
            ls ./build/
            
-           cp -f ./build/vyos-* ./$ARTIFACTS_DIR/vyos-$${{ env.BUILD_VERSION22 }}.iso
+           cp -f ./build/vyos-* ./$ARTIFACTS_DIR/vyos-${{ env.BUILD_VERSION22 }}.iso
          fi
          if [ '${{ matrix.build_type }}' == 'azure' ]; then
            sudo make ${{ matrix.build_type }} 
           
            ls ./build/
            
-           cp -f ./build/vyos-${{ env.BUILD_VERSION22 }}-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$${{ env.BUILD_VERSION22 }}.iso
+           cp -f ./build/vyos-${{ env.BUILD_VERSION22 }}-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-${{ env.BUILD_VERSION22 }}.iso
          fi
          if [ '${{ matrix.build_type }}' == 'oracle' ]; then
            sudo make ${{ matrix.build_type }} 
@@ -378,12 +378,12 @@ jobs:
            if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
              ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e guest_agent=qemu -e cloud_init=false
              ls /tmp/
-             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.qemu.no_cloudinit.qcow2
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2
            elif [ '${{ matrix.cloudinit }}' == 'vultr' ]; then
              ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr -e disk_size=1
              ls /tmp/
              cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2
-             qemu-img convert -f qcow2 -O raw ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2 ./$ARTIFACTS_DIR/vvyos-$BUILD_VERSION26.img
+             qemu-img convert -f qcow2 -O raw ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.img
            else
              ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e guest_agent=qemu -e cloud_init=true
              ls /tmp/
@@ -546,12 +546,12 @@ jobs:
          echo "${{ secrets.PKEY }}" >> W4XZR.pem
          openssl ec -in W4XZR.pem -out W4XZR.der -outform der
          openssl x509 -pubkey -noout -in W4XZR.pem  > pubkey.pem
-         ./signer vyos-$BUILD_VERSION-$BUILD_ARCH.sha256
+         ./signer vyos-$BUILD_VERSION.sha256
          
          mkdir sigs
          
          cp box* sigs/
-         cp vyos-$BUILD_VERSION-$BUILD_ARCH.sha* sigs/
+         cp vyos-$BUILD_VERSION.sha* sigs/
          
          zip -r vyos-${{ env.BUILD_VERSION }}.verify.zip box* *.sha*
          
@@ -570,16 +570,8 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            vyos-${{ env.BUILD_VERSION }}I6.iso
-            vyos-${{ env.BUILD_VERSION }}X6.iso
-            vyos-${{ env.BUILD_VERSION }}A6.iso
-            vyos-${{ env.BUILD_VERSION }}O6.qcow2
-            vyos-${{ env.BUILD_VERSION }}G6.tar.gz
-            vyos-${{ env.BUILD_VERSION }}.verify.zip
-            vyos-${{ env.BUILD_VERSION }}I0.iso
-            vyos-${{ env.BUILD_VERSION }}X0.iso
-            vyos-${{ env.BUILD_VERSION }}A0.iso
-            vyos-${{ env.BUILD_VERSION }}O0.qcow2
+            vyos-${{ env.BUILD_VERSION }}Q0V.img
+            vyos-${{ env.BUILD_VERSION }}Q6V.img
             
       - name: Release1
         uses: softprops/action-gh-release@v1
@@ -592,12 +584,10 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.qemu.no_cloudinit.qcow2
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.qemu.vultr.qcow2
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.qemu.cloudinit.qcow2
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.qemu.no_cloudinit.qcow2
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.qemu.vultr.qcow2
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.qemu.cloudinit.qcow2
+            vyos-${{ env.BUILD_VERSION }}H0C.vhdx
+            vyos-${{ env.BUILD_VERSION }}H0N.vhdx
+            vyos-${{ env.BUILD_VERSION }}H6C.vhdx
+            vyos-${{ env.BUILD_VERSION }}H6N.vhdx
         
       - name: Release2
         uses: softprops/action-gh-release@v1
@@ -610,10 +600,12 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.hyperv.no_cloudinit.vhdx
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.hyperv.cloudinit.vhdx
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.hyperv.no_cloudinit.vhdx
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.hyperv.cloudinit.vhdx
+            vyos-${{ env.BUILD_VERSION }}A0.iso
+            vyos-${{ env.BUILD_VERSION }}A6.iso
+            vyos-${{ env.BUILD_VERSION }}X0.iso
+            vyos-${{ env.BUILD_VERSION }}X6.iso
+            vyos-${{ env.BUILD_VERSION }}I0.iso
+            vyos-${{ env.BUILD_VERSION }}I6.iso
         
       - name: Release3
         uses: softprops/action-gh-release@v1
@@ -626,10 +618,11 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.vmware.no_cloudinit.ova
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.vmware.cloudinit.ova
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.vmware.no_cloudinit.ova
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.vmware.cloudinit.ova
+            vyos-${{ env.BUILD_VERSION }}V0C.ova
+            vyos-${{ env.BUILD_VERSION }}V0N.ova
+            vyos-${{ env.BUILD_VERSION }}V6C.ova
+            vyos-${{ env.BUILD_VERSION }}V6N.ova
+            
       - name: Release4
         uses: softprops/action-gh-release@v1
         env:
@@ -641,9 +634,43 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.pmx.no_cloudinit.qcow2
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.pmx.cloudinit.qcow2
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.pmx.no_cloudinit.qcow2
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.pmx.cloudinit.qcow2
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.qemu.vultr.img
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.nat64.qemu.vultr.img
+            vyos-${{ env.BUILD_VERSION }}G0.tar.gz
+            vyos-${{ env.BUILD_VERSION }}G6.tar.gz
+            vyos-${{ env.BUILD_VERSION }}.verify.zip
+            
+      - name: Release6
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: equuleus
+          name: VyOS 1.3 LTS Release
+          body: VyOS equuleus Branch
+          draft: false
+          prerelease: false
+          files: |
+            vyos-${{ env.BUILD_VERSION }}O0.qcow2
+            vyos-${{ env.BUILD_VERSION }}O6.qcow2
+            vyos-${{ env.BUILD_VERSION }}P0C.qcow2
+            vyos-${{ env.BUILD_VERSION }}P0N.qcow2
+            vyos-${{ env.BUILD_VERSION }}P6C.qcow2
+            vyos-${{ env.BUILD_VERSION }}P6N.qcow2
+            
+      - name: Release7
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: equuleus
+          name: VyOS 1.3 LTS Release
+          body: VyOS equuleus Branch
+          draft: false
+          prerelease: false
+          files: |
+            vyos-${{ env.BUILD_VERSION }}Q0V.qcow2
+            vyos-${{ env.BUILD_VERSION }}Q6C.qcow2
+            vyos-${{ env.BUILD_VERSION }}Q6N.qcow2
+            vyos-${{ env.BUILD_VERSION }}Q6V.qcow2
+            vyos-${{ env.BUILD_VERSION }}Q0C.qcow2
+            vyos-${{ env.BUILD_VERSION }}Q0N.qcow2
+
