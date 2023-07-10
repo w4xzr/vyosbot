@@ -223,14 +223,14 @@ jobs:
           
            ls ./build/
 
-           cp -f ./build/vyos-${{ env.BUILD_VERSION22 }}-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-${{ env.BUILD_VERSION22 }}.iso 
+           cp -f ./build/vyos-* ./$ARTIFACTS_DIR/vyos-${{ env.BUILD_VERSION22 }}.iso 
          fi
          if [ '${{ matrix.build_type }}' == 'AWS' ]; then
            sudo make ${{ matrix.build_type }} 
           
            ls ./build/
            
-          cp -f ./build/vyos-${{ env.BUILD_VERSION22 }}-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$${{ env.BUILD_VERSION22 }}.iso
+          cp -f ./build/vyos-* ./$ARTIFACTS_DIR/vyos-$${{ env.BUILD_VERSION22 }}.iso
          fi
          if [ '${{ matrix.build_type }}' == 'GCE' ]; then
            sudo make ${{ matrix.build_type }} 
@@ -245,7 +245,7 @@ jobs:
           
            ls ./build/
            
-           cp -f ./build/vyos-${{ env.BUILD_VERSION22 }}-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$${{ env.BUILD_VERSION22 }}.iso
+           cp -f ./build/vyos-* ./$ARTIFACTS_DIR/vyos-$${{ env.BUILD_VERSION22 }}.iso
          fi
          if [ '${{ matrix.build_type }}' == 'azure' ]; then
            sudo make ${{ matrix.build_type }} 
