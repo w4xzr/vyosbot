@@ -130,6 +130,7 @@ jobs:
                build_suffix='U0'  # Unknown build type
            fi
            echo "BUILD_VERSION22=${{ env.BUILD_VERSION }}$build_suffix" >> $GITHUB_ENV
+           echo "BUILD_VERSION23=${{ env.BUILD_VERSION2 }}$build_suffix" >> $GITHUB_ENV
          
          fi
          
@@ -338,7 +339,7 @@ jobs:
              ls /tmp/
              cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.qemu.no_cloudinit.qcow2
            elif [ '${{ matrix.cloudinit }}' == 'vultr' ]; then
-             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr -e disk_size=1
+             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr -e disk_size=1 -e vyos_branch=equuleus
              ls /tmp/
              cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.qemu.vultr.qcow2
              qemu-img convert -f qcow2 -O raw ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.qemu.vultr.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.qemu.vultr.img
