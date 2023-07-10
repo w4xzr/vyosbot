@@ -326,7 +326,7 @@ jobs:
           path: ./${{ env.WORKING_DIR }}
           
       - name: Set ID
-        id: id
+        id: id1
         run: |
          if [[ ${{ matrix.build_type }} == 'qemu' ]]; then
              build_suffix='Q'
@@ -348,12 +348,18 @@ jobs:
              echo "BUILD_VERSION24=${{ env.BUILD_VERSION }}$build_suffix" >> $GITHUB_ENV
          fi
            
+      - name: Set ID
+        id: id2
+        run: |
          if [ '${{ matrix.nat64  }}' == 'yes' ]; then
              echo "BUILD_VERSION25=${{ env.BUILD_VERSION24 }}6" >> $GITHUB_ENV
          else
              echo "BUILD_VERSION25=${{ env.BUILD_VERSION24 }}0" >> $GITHUB_ENV
          fi
          
+      - name: Set ID
+        id: id3
+        run: |
          if [ '${{ matrix.cloudinit  }}' == 'cloudinit' ]; then
              echo "BUILD_VERSION26=${{ env.BUILD_VERSION25 }}C" >> $GITHUB_ENV
          elif [ '${{ matrix.cloudinit  }}' == 'no-cloudinit' ]; then
