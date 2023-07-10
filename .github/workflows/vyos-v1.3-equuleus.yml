@@ -114,6 +114,7 @@ jobs:
                build_suffix='U6'  # Unknown build type
            fi
            echo "BUILD_VERSION22=${{ env.BUILD_VERSION }}$build_suffix" >> $GITHUB_ENV
+           echo "BUILD_VERSION23=${{ env.BUILD_VERSION2 }}$build_suffix" >> $GITHUB_ENV
 
          else         
            if [[ ${{ matrix.build_type }} == 'iso' ]]; then
@@ -213,7 +214,7 @@ jobs:
          
          sudo apt-get install -y qemu-utils sshpass
          
-         ./configure --architecture $BUILD_ARCH --build-by $BUILD_BY --build-type $BUILD_TYPE --version ${{ env.BUILD_VERSION22 }} --build-comment "$BUILD_COMMENT" --custom-package mc --custom-package nano --custom-package git --custom-package iptraf-ng ${{ matrix.inc_nat64 }}
+         ./configure --architecture $BUILD_ARCH --build-by $BUILD_BY --build-type $BUILD_TYPE --version ${{ env.BUILD_VERSION23 }} --build-comment "$BUILD_COMMENT" --custom-package mc --custom-package nano --custom-package git --custom-package iptraf-ng ${{ matrix.inc_nat64 }}
          
           mkdir -p ./$ARTIFACTS_DIR
          
@@ -323,46 +324,80 @@ jobs:
         with:
           name: vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}-images
           path: ./${{ env.WORKING_DIR }}
-                  
+          
+      - name: Set ID
+        id: id
+        run: |
+         if [[ ${{ matrix.build_type }} == 'qemu' ]]; then
+             build_suffix='Q'
+             echo "BUILD_VERSION24=${{ env.BUILD_VERSION }}$build_suffix" >> $GITHUB_ENV
+         elif [[ ${{ matrix.build_type }} == 'hyperv' ]]; then
+             build_suffix='H'
+             echo "BUILD_VERSION24=${{ env.BUILD_VERSION }}$build_suffix" >> $GITHUB_ENV
+         elif [[ ${{ matrix.build_type }} == 'vmware' ]]; then
+             build_suffix='V'
+             echo "BUILD_VERSION24=${{ env.BUILD_VERSION }}$build_suffix" >> $GITHUB_ENV
+         elif [[ ${{ matrix.build_type }} == 'pmx' ]]; then
+             build_suffix='P'
+             echo "BUILD_VERSION24=${{ env.BUILD_VERSION }}$build_suffix" >> $GITHUB_ENV
+         elif [[ ${{ matrix.build_type }} == 'oracle' ]]; then
+             build_suffix='O'
+             echo "BUILD_VERSION24=${{ env.BUILD_VERSION }}$build_suffix" >> $GITHUB_ENV
+         else
+             build_suffix='U'  # Unknown build type
+             echo "BUILD_VERSION24=${{ env.BUILD_VERSION }}$build_suffix" >> $GITHUB_ENV
+         fi
+           
+         if [ '${{ matrix.nat64  }}' == 'yes' ]; then
+             echo "BUILD_VERSION25=${{ env.BUILD_VERSION24 }}6" >> $GITHUB_ENV
+         else
+             echo "BUILD_VERSION25=${{ env.BUILD_VERSION24 }}0" >> $GITHUB_ENV
+         fi
+         
+         if [ '${{ matrix.cloudinit  }}' == 'cloudinit' ]; then
+             echo "BUILD_VERSION26=${{ env.BUILD_VERSION25 }}C" >> $GITHUB_ENV
+         elif [ '${{ matrix.cloudinit  }}' == 'no-cloudinit' ]; then
+             echo "BUILD_VERSION26=${{ env.BUILD_VERSION25 }}N" >> $GITHUB_ENV
+         else
+             echo "BUILD_VERSION26=${{ env.BUILD_VERSION25 }}V" >> $GITHUB_ENV
+         fi 
+                           
       - name: Build Image
         id: image
         working-directory: ./${{ env.WORKING_DIR }}
         shell: bash
         run: |
-         cp vyos-${{ env.BUILD_VERSION }}I6.iso vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso
-         cp vyos-${{ env.BUILD_VERSION }}I0.iso vyos-$BUILD_VERSION-$BUILD_ARCH.iso
-         
          if [ '${{ matrix.build_type }}' == 'qemu' ]; then
           if [ '${{ matrix.nat64 }}' == 'yes' ]; then
            if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
-             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e guest_agent=qemu -e cloud_init=false
+             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e guest_agent=qemu -e cloud_init=false
              ls /tmp/
              cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.qemu.no_cloudinit.qcow2
            elif [ '${{ matrix.cloudinit }}' == 'vultr' ]; then
-             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr -e disk_size=1 -e vyos_branch=equuleus
+             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr -e disk_size=1
              ls /tmp/
-             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.qemu.vultr.qcow2
-             qemu-img convert -f qcow2 -O raw ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.qemu.vultr.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.qemu.vultr.img
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2
+             qemu-img convert -f qcow2 -O raw ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2 ./$ARTIFACTS_DIR/vvyos-$BUILD_VERSION26.img
            else
-             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e guest_agent=qemu -e cloud_init=true
+             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e guest_agent=qemu -e cloud_init=true
              ls /tmp/
-             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.qemu.cloudinit.qcow2
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2
            fi
           else
            if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
-             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e guest_agent=qemu -e cloud_init=false
+             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I0.iso -e guest_agent=qemu -e cloud_init=false
              ls /tmp/
-             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.qemu.no_cloudinit.qcow2
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2
            elif [ '${{ matrix.cloudinit }}' == 'vultr' ]; then
-             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr -e disk_size=1
+             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I0.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr -e disk_size=1
              ls /tmp/
-             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.qemu.vultr.qcow2
-             qemu-img convert -f qcow2 -O raw ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.qemu.vultr.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.qemu.vultr.img
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2
+             qemu-img convert -f qcow2 -O raw ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.img
 
           else
-             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e guest_agent=qemu -e cloud_init=true
+             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I0.iso -e guest_agent=qemu -e cloud_init=true
              ls /tmp/
-             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.qemu.cloudinit.qcow2
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2
            fi
           fi
          fi
@@ -370,34 +405,34 @@ jobs:
          if [ '${{ matrix.build_type }}' == 'pmx' ]; then
           if [ '${{ matrix.nat64 }}' == 'yes' ]; then
            if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
-             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e guest_agent=qemu -e cloud_init=false -e grub_console=serial
+             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e guest_agent=qemu -e cloud_init=false -e grub_console=serial
              ls /tmp/
-             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.pmx.no_cloudinit.qcow2
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2
            elif [ '${{ matrix.cloudinit }}' == 'vultr' ]; then
-             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr
+             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr
              ls /tmp/
-             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.pmx.vultr.qcow2
-             qemu-img convert -f qcow2 -O raw ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.pmx.vultr.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.pmx.vultr.img
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2
+             qemu-img convert -f qcow2 -O raw ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.img
 
            else
-             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e guest_agent=qemu -e cloud_init=true -e grub_console=serial -e cloud_init_ds=NoCloud
+             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e guest_agent=qemu -e cloud_init=true -e grub_console=serial -e cloud_init_ds=NoCloud
              ls /tmp/
-             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.pmx.cloudinit.qcow2
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2
            fi
           else
            if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
-             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e guest_agent=qemu -e cloud_init=false -e grub_console=serial
+             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I0.iso -e guest_agent=qemu -e cloud_init=false -e grub_console=serial
              ls /tmp/
-             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.pmx.no_cloudinit.qcow2
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2
            elif [ '${{ matrix.cloudinit }}' == 'vultr' ]; then
-             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr
+             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I0.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr
              ls /tmp/
-             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.pmx.vultr.qcow2
-             qemu-img convert -f qcow2 -O raw ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.pmx.vultr.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.pmx.vultr.img
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2
+             qemu-img convert -f qcow2 -O raw ./vyos-$BUILD_VERSION26.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.img
           else
-             ansible-playbook qemu.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e guest_agent=qemu -e cloud_init=true -e grub_console=serial -e cloud_init_ds=NoCloud
+             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I0.iso -e guest_agent=qemu -e cloud_init=true -e grub_console=serial -e cloud_init_ds=NoCloud
              ls /tmp/
-             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.pmx.cloudinit.qcow2
+             cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2
            fi
           fi
          fi
@@ -405,31 +440,31 @@ jobs:
          if [ '${{ matrix.build_type }}' == 'hyperv' ]; then
           if [ '${{ matrix.nat64 }}' == 'yes' ]; then
            if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
-             ansible-playbook hyperv.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e cloud_init=false
+             ansible-playbook hyperv.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e cloud_init=false
              ls /tmp/
-             cp /tmp/vyos_hyperv_image.vhdx ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.hyperv.no_cloudinit.vhdx
+             cp /tmp/vyos_hyperv_image.vhdx ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.vhdx
            elif [ '${{ matrix.cloudinit }}' == 'vultr' ]; then
-             ansible-playbook hyperv.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e cloud_init=true -e cloud_init_ds=Vultr
+             ansible-playbook hyperv.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e cloud_init=true -e cloud_init_ds=Vultr
              ls /tmp/
-             cp /tmp/vyos_hyperv_image.vhdx ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.hyperv.vultr.vhdx
+             cp /tmp/vyos_hyperv_image.vhdx ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.vhdx
            else
-             ansible-playbook hyperv.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e cloud_init=true
+             ansible-playbook hyperv.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e cloud_init=true
              ls /tmp/
-             cp /tmp/vyos_hyperv_image.vhdx ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.hyperv.cloudinit.vhdx
+             cp /tmp/vyos_hyperv_image.vhdx ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.vhdx
            fi
           else
            if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
-             ansible-playbook hyperv.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e cloud_init=false
+             ansible-playbook hyperv.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I0.iso -e cloud_init=false
              ls /tmp/
-             cp /tmp/vyos_hyperv_image.vhdx ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.hyperv.no_cloudinit.vhdx
+             cp /tmp/vyos_hyperv_image.vhdx ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.vhdx
            elif [ '${{ matrix.cloudinit }}' == 'vultr' ]; then
-             ansible-playbook hyperv.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e cloud_init=true -e cloud_init_ds=Vultr
+             ansible-playbook hyperv.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I0.iso -e cloud_init=true -e cloud_init_ds=Vultr
              ls /tmp/
-             cp /tmp/vyos_hyperv_image.vhdx ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.hyperv.vultr.vhdx
+             cp /tmp/vyos_hyperv_image.vhdx ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.vhdx
           else
-             ansible-playbook hyperv.yml -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e cloud_init=true
+             ansible-playbook hyperv.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I0.iso -e cloud_init=true
              ls /tmp/
-             cp /tmp/vyos_hyperv_image.vhdx ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.hyperv.cloudinit.vhdx
+             cp /tmp/vyos_hyperv_image.vhdx ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.vhdx
            fi
           fi
          fi
@@ -441,34 +476,35 @@ jobs:
           echo "${{ secrets.PKEY }}" >> myself.pem
           if [ '${{ matrix.nat64 }}' == 'yes' ]; then
            if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
-             ansible-playbook vmware.yml -e vyos_vmware_private_key_path=myself.pem -e guest_agent=vmware -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e cloud_init=false -e ovf_template=simple
+             ansible-playbook vmware.yml -e vyos_vmware_private_key_path=myself.pem -e guest_agent=vmware -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e cloud_init=false -e ovf_template=simple
              ls /tmp/
-             cp /tmp/*.ova ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.vmware.no_cloudinit.ova
+             cp /tmp/*.ova ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.ova
            elif [ '${{ matrix.cloudinit }}' == 'vultr' ]; then
-             ansible-playbook vmware.yml -e vyos_vmware_private_key_path=myself.pem -e guest_agent=vmware -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e cloud_init=true -e cloud_init_ds=Vultr
+             ansible-playbook vmware.yml -e vyos_vmware_private_key_path=myself.pem -e guest_agent=vmware -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e cloud_init=true -e cloud_init_ds=Vultr
              ls /tmp/
-             cp /tmp/*.ova ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.vmware.vultr.ova
+             cp /tmp/*.ova ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26ova
            else
-             ansible-playbook vmware.yml -e vyos_vmware_private_key_path=myself.pem -e guest_agent=vmware -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso -e cloud_init=true
+             ansible-playbook vmware.yml -e vyos_vmware_private_key_path=myself.pem -e guest_agent=vmware -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e cloud_init=true
              ls /tmp/
-             cp /tmp/*.ova ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.vmware.cloudinit.ova
+             cp /tmp/*.ova ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.ova
            fi
           else
            if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
-             ansible-playbook vmware.yml -e vyos_vmware_private_key_path=myself.pem -e guest_agent=vmware -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e cloud_init=false -e ovf_template=simple
+             ansible-playbook vmware.yml -e vyos_vmware_private_key_path=myself.pem -e guest_agent=vmware -e iso_local=./vyos-${{ env.BUILD_VERSION }}I0.iso -e cloud_init=false -e ovf_template=simple
              ls /tmp/
-             cp /tmp/*.ova ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.vmware.no_cloudinit.ova
+             cp /tmp/*.ova ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.ova
            elif [ '${{ matrix.cloudinit }}' == 'vultr' ]; then
-             ansible-playbook vmware.yml -e vyos_vmware_private_key_path=myself.pem -e guest_agent=vmware -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e cloud_init=true -e cloud_init_ds=Vultr
+             ansible-playbook vmware.yml -e vyos_vmware_private_key_path=myself.pem -e guest_agent=vmware -e iso_local=./vyos-${{ env.BUILD_VERSION }}I0.iso -e cloud_init=true -e cloud_init_ds=Vultr
              ls /tmp/
-             cp /tmp/*.ova ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.vmware.vultr.ova
+             cp /tmp/*.ova ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.ova
           else
-             ansible-playbook vmware.yml -e vyos_vmware_private_key_path=myself.pem -e guest_agent=vmware -e iso_local=./vyos-$BUILD_VERSION-$BUILD_ARCH.iso -e cloud_init=true
+             ansible-playbook vmware.yml -e vyos_vmware_private_key_path=myself.pem -e guest_agent=vmware -e iso_local=./vyos-${{ env.BUILD_VERSION }}I0.iso -e cloud_init=true
              ls /tmp/
-             cp /tmp/*.ova ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.vmware.cloudinit.ova
+             cp /tmp/*.ova ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.ova
            fi
           fi
          fi
+         
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -495,7 +531,7 @@ jobs:
       - name: SHA256sum
         run: |
          ls
-         sha256sum vyos-* >> vyos-$BUILD_VERSION-$BUILD_ARCH.sha256
+         sha256sum vyos-* >> vyos-$BUILD_VERSION.sha256
          
          wget https://github.com/w4xzr/signer/releases/download/v1/signer
          
