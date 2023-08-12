@@ -75,7 +75,7 @@ jobs:
          sudo make clean
          
          sudo ./build-vyos-image ${{ matrix.build_type }} --architecture $BUILD_ARCH --build-by $BUILD_BY --build-type $BUILD_TYPE --version $BUILD_VERSION --build-comment "$BUILD_COMMENT" --custom-package mc --custom-package iptraf-ng --custom-package nano --custom-package bat --custom-package git ${{ matrix.inc_nat64 }}
-         
+         ls ./build/
          if [ '${{ matrix.build_type }}' == 'iso' ]; then
            if [ '${{ matrix.inc_nat64  }}' == '--custom-package tayga' ]; then
              cp -f ./build/vyos-$BUILD_VERSION-$BUILD_ARCH.iso ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.iso
