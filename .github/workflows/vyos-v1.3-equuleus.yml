@@ -317,7 +317,7 @@ jobs:
           mkdir -p ./$ARTIFACTS_DIR
          
       - name: Download Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -527,7 +527,7 @@ jobs:
         run: echo "BUILD_VERSION=${{needs.createid.outputs.BUILD}}" >> $GITHUB_ENV 
         
       - name: Download Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
