@@ -143,7 +143,7 @@ jobs:
          sha256sum vyos-$BUILD_VERSION-$BUILD_ARCH.nat64.xcpng.iso >> vyos-$BUILD_VERSION-$BUILD_ARCH.sha256
         
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

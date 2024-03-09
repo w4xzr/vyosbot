@@ -560,7 +560,7 @@ jobs:
          sshpass -p "${{ secrets.Pass }}" scp -pC -o StrictHostKeyChecking=no vyos-${{ env.BUILD_VERSION }}.verify.zip thomas@23.134.89.111:~/vy/
          
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -574,7 +574,7 @@ jobs:
             vyos-${{ env.BUILD_VERSION }}Q6V.img
             
       - name: Release1
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -590,7 +590,7 @@ jobs:
             vyos-${{ env.BUILD_VERSION }}H6N.vhdx
         
       - name: Release2
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -608,7 +608,7 @@ jobs:
             vyos-${{ env.BUILD_VERSION }}I6.iso
         
       - name: Release3
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -624,7 +624,7 @@ jobs:
             vyos-${{ env.BUILD_VERSION }}V6N.ova
             
       - name: Release4
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -639,7 +639,7 @@ jobs:
             vyos-${{ env.BUILD_VERSION }}.verify.zip
             
       - name: Release6
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -657,7 +657,7 @@ jobs:
             vyos-${{ env.BUILD_VERSION }}P6N.qcow2
             
       - name: Release7
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
