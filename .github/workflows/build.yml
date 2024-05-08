@@ -112,32 +112,32 @@ jobs:
          if [ '${{ matrix.build_type }}' == 'qemu' ]; then
           if [ '${{ matrix.nat64 }}' == 'yes' ]; then
            if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
-             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e guest_agent=qemu -e cloud_init=false
+             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e guest_agent=qemu -e cloud_init=false -e parttable_type=gpt
              ls /tmp/
              cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2
            elif [ '${{ matrix.cloudinit }}' == 'vultr' ]; then
-             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr -e disk_size=1
+             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr -e disk_size=1 -e parttable_type=gpt
              ls /tmp/
              cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2
              qemu-img convert -f qcow2 -O raw ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.img
            else
-             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e guest_agent=qemu -e cloud_init=true
+             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I6.iso -e guest_agent=qemu -e cloud_init=true -e parttable_type=gpt
              ls /tmp/
              cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2
            fi
           else
            if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
-             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I0.iso -e guest_agent=qemu -e cloud_init=false
+             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I0.iso -e guest_agent=qemu -e cloud_init=false -e parttable_type=gpt
              ls /tmp/
              cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2
            elif [ '${{ matrix.cloudinit }}' == 'vultr' ]; then
-             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I0.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr -e disk_size=1
+             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I0.iso -e guest_agent=qemu -e cloud_init=true -e cloud_init_ds=Vultr -e disk_size=1 -e parttable_type=gpt
              ls /tmp/
              cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2
              qemu-img convert -f qcow2 -O raw ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.img
 
           else
-             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I0.iso -e guest_agent=qemu -e cloud_init=true
+             ansible-playbook qemu.yml -e iso_local=./vyos-${{ env.BUILD_VERSION }}I0.iso -e guest_agent=qemu -e cloud_init=true -e parttable_type=gpt
              ls /tmp/
              cp /tmp/*.qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION26.qcow2
            fi
