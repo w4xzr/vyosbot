@@ -39,10 +39,6 @@ jobs:
     
     outputs:
       BUILD: ${{ steps.step1.outputs.ver }}
-
-    container:
-      image: vyos/vyos-build:equuleus
-      options: --workdir /vyos --privileged
       
     env:
       BUILD_VERSION: 1.4.0-epa2-amd64
@@ -55,7 +51,7 @@ jobs:
         shell: bash
         run: |
          sudo apt update
-         sudo apt install -y ansible python
+         sudo apt install -y ansible python3
          sudo apt install -y qemu-utils
          
       - name: Clone Source Code
