@@ -56,7 +56,7 @@ jobs:
          
       - name: Clone Source Code
         run: |
-          git clone -b current --single-branch "https://github.com/vyos/vyos-vm-images" $WORKING_DIR
+          git clone -b current --single-branch "https://github.com/thomasb9511/vyos-vm-images" $WORKING_DIR
           cd $WORKING_DIR
           mkdir -p ./$ARTIFACTS_DIR
           
