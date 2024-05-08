@@ -214,7 +214,7 @@ jobs:
          if [ '${{ matrix.build_type }}' == 'vmware' ]; then
          wget https://github.com/9l/vyos-build-action/raw/master/tools/VMware-ovftool-4.4.1-16812187-lin.x86_64.bundle
          chmod +x VMware-ovftool-4.4.1-16812187-lin.x86_64.bundle
-          ./VMware-ovftool-4.4.1-16812187-lin.x86_64.bundle --eulas-agreed
+          sudo ./VMware-ovftool-4.4.1-16812187-lin.x86_64.bundle --eulas-agreed
           echo "${{ secrets.PKEY }}" >> myself.pem
           if [ '${{ matrix.nat64 }}' == 'yes' ]; then
            if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
