@@ -1,0 +1,116 @@
+name: Release VyOS current VM images
+
+on:
+  workflow_dispatch:
+
+jobs:
+  get_latest_release:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      latest_version: ${{ steps.get_latest_release.outputs.result }}
+      iso_url: ${{ steps.set_iso_url.outputs.iso_url }}
+    steps:
+      - name: Get latest release
+        id: get_latest_release
+        uses: actions/github-script@v6
+        with:
+          result-encoding: string
+          debug: true
+          script: |
+            const result = await github.rest.repos.getLatestRelease({
+              owner: "vyos",
+              repo: "vyos-rolling-nightly-builds",
+            });
+            console.log(result);
+            return result.data.tag_name;
+      - uses: actions/checkout@v4
+      - name: Get version from version.txt
+        id: get_version
+        run: echo "version=1.3.6" >> $GITHUB_OUTPUT
+      - name: Set iso url
+        id: set_iso_url
+        if: ${{ steps.get_version.outputs.version != steps.get_latest_release.outputs.result }}
+        run: |
+          v="${{steps.get_latest_release.outputs.result}}"
+          echo "iso_url: wget https://f.ssh.ax/vyos-1.3.6-amd64.iso"
+          echo "iso_url=wget https://f.ssh.ax/vyos-1.3.6-amd64.iso" >> $GITHUB_OUTPUT
+
+  qemu:
+    needs: [get_latest_release]
+    if: ${{ needs.get_latest_release.outputs.iso_url != '' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cloud_init: ['true', 'false']
+        grub_console: ['kvm', 'serial']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: actions
+      - run: pipx install --include-deps ansible
+      - run: |
+          ansible-playbook qemu.yml -e cloud_init=${{ matrix.cloud_init}} -e grub_console=${{ matrix.grub_console }} -e vyos_iso_url=${{ needs.get_latest_release.outputs.iso_url }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: images
+          path: build/*.qcow2
+          retention-days: 30
+          if-no-files-found: error
+
+  lxd:
+    needs: [get_latest_release]
+    if: ${{ needs.get_latest_release.outputs.iso_url != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: actions
+      - run: pipx install --include-deps ansible
+      - run: |
+          ansible-playbook lxd-vm.yml -e vyos_iso_url=${{ needs.get_latest_release.outputs.iso_url }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: images
+          path: build/*.tar.xz
+          retention-days: 30
+          if-no-files-found: error
+
+  release:
+    needs: [get_latest_release, qemu, lxd]
+    if: ${{ needs.get_latest_release.outputs.iso_url != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update version.txt
+        run: echo ${{needs.get_latest_release.outputs.latest_version}} > $GITHUB_WORKSPACE/version.txt
+
+      - name: Create autocommit and tag
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          tagging_message: ${{ needs.get_latest_release.outputs.latest_version }}
+          commit_message: ${{ needs.get_latest_release.outputs.latest_version }}
+
+      - uses: actions/download-artifact@v3
+        id: download
+        with:
+          name: images
+
+      - name: Publish release
+        uses: ncipollo/release-action@v1
+        with:
+          artifactErrorsFailBuild: true
+          artifacts: "*.tar.xz,*.qcow2"
+          name: ${{ needs.get_latest_release.outputs.latest_version }}
+          tag: ${{ needs.get_latest_release.outputs.latest_version }}
+
+      - run: aws configure set default.s3.max_concurrent_requests 3
+  
+      - name: upload file
+        run: aws --endpoint-url "${ENDPOINT_URL}" s3 sync . s3://${BUCKET_NAME}/rolling/current --exclude "*" --include="*.tar.xz" --include="*.qcow2"
+        env:
+          ENDPOINT_URL: ${{ secrets.ENDPOINT_URL }}
+          BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: auto # avoid botocore.awsrequest.AWSRequest error
