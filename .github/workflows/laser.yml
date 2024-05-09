@@ -17,8 +17,8 @@ jobs:
         id: set_iso_url
         run: |
           v="1.3.6"
-          echo "iso_url: wget https://f.ssh.ax/vyos-1.3.6-amd64.iso"
-          echo "iso_url=wget https://f.ssh.ax/vyos-1.3.6-amd64.iso" >> $GITHUB_OUTPUT
+          echo "iso_url: https://f.ssh.ax/vyos-1.3.6-amd64.iso"
+          echo "iso_url=https://f.ssh.ax/vyos-1.3.6-amd64.iso" >> $GITHUB_OUTPUT
 
   qemu:
     needs: [get_latest_release]
