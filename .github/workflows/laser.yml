@@ -28,9 +28,6 @@ jobs:
         cloud_init: ['true', 'false']
         grub_console: ['kvm', 'serial']
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: actions
       - run: pipx install --include-deps ansible
       - run: |
           git clone "https://github.com/higebu/vyos-vm-images" .
@@ -48,9 +45,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     
-      - uses: actions/checkout@v4
-        with:
-          ref: actions
       - run: pipx install --include-deps ansible
       - run: |
           git clone "https://github.com/higebu/vyos-vm-images" .
