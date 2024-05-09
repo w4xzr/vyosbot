@@ -41,8 +41,8 @@ jobs:
       BUILD: ${{ steps.step1.outputs.ver }}
       
     env:
-      BUILD_VERSION: 1.4.0-epa2-amd64
-      BUILD_VERSION2: 1.4.0-epa2-amd64
+      BUILD_VERSION: 1.3.6-amd64
+      BUILD_VERSION2: 1.3.6-amd64
 
     steps:
               
@@ -108,7 +108,7 @@ jobs:
         working-directory: ./${{ env.WORKING_DIR }}
         shell: bash
         run: |
-         wget https://f.ssh.ax/vyos-1.4.0-epa2-amd64.iso -O vyos-${{ env.BUILD_VERSION }}I6.iso
+         wget https://f.ssh.ax/vyos-1.3.6-amd64.iso -O vyos-${{ env.BUILD_VERSION }}I6.iso
          if [ '${{ matrix.build_type }}' == 'qemu' ]; then
           if [ '${{ matrix.nat64 }}' == 'yes' ]; then
            if [ '${{ matrix.cloudinit }}' == 'no-cloudinit' ]; then
