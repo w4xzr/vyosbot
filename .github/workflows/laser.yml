@@ -31,7 +31,7 @@ jobs:
       - run: pipx install --include-deps ansible
       - run: |
           git clone "https://github.com/higebu/vyos-vm-images" .
-
+          ls .
           ansible-playbook qemu.yml -e cloud_init=${{ matrix.cloud_init}} -e grub_console=${{ matrix.grub_console }} -e vyos_iso_url=${{ needs.get_latest_release.outputs.iso_url }}
       - uses: actions/upload-artifact@v3
         with:
